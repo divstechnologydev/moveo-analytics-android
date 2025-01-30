@@ -40,6 +40,7 @@ public class MoveoOne {
     }
     public void initialize(String token) {
         this.token = token;
+        log("Initialized");
     }
 
     public void identify(String userId) {
@@ -77,25 +78,6 @@ public class MoveoOne {
         }
     }
 
-//    og(msg: "track")
-//        var properties: [String: String] = [:]
-//        properties["sg"] = moveoOneData.semanticGroup
-//        properties["eID"] = moveoOneData.id
-//        properties["eA"] = moveoOneData.action.rawValue
-//        properties["eT"] = moveoOneData.type.rawValue
-//        if let stringValue = moveoOneData.value as? String {
-//            properties["eV"] = stringValue
-//        } else if let stringArray = moveoOneData.value as? [String] {
-//            properties["eV"] = stringArray.joined(separator: ",")
-//        } else if let intValue = moveoOneData.value as? Int {
-//            properties["eV"] = String(intValue)
-//        } else if let doubleValue = moveoOneData.value as? Double {
-//            properties["eV"] = String(doubleValue)
-//        } else {
-//            properties["eV"] = "-"
-//        }
-//
-//        track(context: context, properties: properties, metadata: moveoOneData.metadata ?? [:])
     public void track(String context, MoveoOneData data) {
         log("track");
         Map<String, String> properties = new HashMap<>();

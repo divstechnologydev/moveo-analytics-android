@@ -9,8 +9,8 @@ public class SimpleAppApplication extends Application {
     public void onCreate() {
         super.onCreate();
         MoveoOne moveoOne = MoveoOne.getInstance();
+        moveoOne.setLogging(true);
         moveoOne.initialize("YOUR_TOKEN_GOES_HERE");
         moveoOne.start("context");
-        moveoOne.setLogging(true);
     }
 }
