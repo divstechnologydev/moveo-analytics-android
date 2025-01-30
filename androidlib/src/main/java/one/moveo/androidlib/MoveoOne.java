@@ -4,29 +4,40 @@ import static one.moveo.androidlib.Constants.MoveoOneEventType.START_SESSION;
 import static one.moveo.androidlib.Constants.MoveoOneEventType.TRACK;
 import static one.moveo.androidlib.Constants.MoveoOneEventType.UPDATE_METADATA;
 
+import android.os.Build;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import lombok.Getter;
+import lombok.Setter;
 
 
 public class MoveoOne {
     public static final String TAG = "MOVEO_ONE";
+    public static final String API_ENDPOINT = "https://api.moveo.one/api/analytic/event";
+
     @Getter
     private static final MoveoOne instance = new MoveoOne();
     private final List<MoveoOneEntity> buffer = new ArrayList<>();
+
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private String token = "";
     private String userId = "";
 
+    @Setter
     private boolean logging = false;
+    @Setter
     private int flushInterval = 10;
     private int maxThreshold = 500;
     private Timer flushTimer = null;
@@ -45,14 +56,6 @@ public class MoveoOne {
 
     public void identify(String userId) {
         this.userId = userId;
-    }
-
-    public void setLogging(boolean enabled) {
-        this.logging = enabled;
-    }
-
-    public void setFlushInterval(int interval) {
-        this.flushInterval = interval;
     }
 
     public boolean isCustomFlush() {
@@ -217,7 +220,41 @@ public class MoveoOne {
 
     private void flush() {
         if (!customPush && !buffer.isEmpty()) {
-            log("flush");
+            log("flushing");
+
+            this.clearFlushTimeout();
+            List<MoveoOneEntity> dataToSend = new ArrayList<>();
+            for (MoveoOneEntity entity : buffer) {
+                dataToSend.add(new MoveoOneEntity(
+                        entity.getC(),
+                        entity.getType(),
+                        entity.getUserId(),
+                        entity.getT(),
+                        entity.getProp(),
+                        entity.getMeta(),
+                        entity.getSId()
+                ));
+
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        Util.performPostRequest(API_ENDPOINT, dataToSend, this.token);
+                    } catch (IOException e) {
+                        log("Error Future:" + e);
+                    }
+                });
+            } else {
+                executor.execute(() -> {
+                    try {
+                        Util.performPostRequest(API_ENDPOINT, dataToSend, this.token);
+                    } catch (IOException e) {
+                        log("Error Executor:" + e);
+                    }
+                });
+            }
+
             buffer.clear();
             log("Flushing data...");
         }
@@ -232,6 +269,14 @@ public class MoveoOne {
                 flush();
             }
         }, flushInterval * 1000);
+    }
+
+    private void clearFlushTimeout() {
+        if (flushTimer != null) {
+            flushTimer.cancel();
+            flushTimer.purge();
+            flushTimer = null;
+        }
     }
 
     private void log(String message) {

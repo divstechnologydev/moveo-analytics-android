@@ -28,7 +28,7 @@ Moveo One Android SDK is a pure Java/Kotlin implementation of Moveo One Analytic
 
 ### Initialize
 
-Initialization should be done early in your application lifecycle, typically in your Application class or main Activity.
+Initialization should be done early in your application lifecycle, typically in your Application class or main Activity - or any other entry point of your choice.
 
 ```java
 import one.moveo.androidlib.MoveoOne;
@@ -38,12 +38,14 @@ public class YourApplication extends Application {
     public void onCreate() {
         super.onCreate();
         MoveoOne.getInstance().initialize(token);
+        
+        // Optionally - identify user
         MoveoOne.getInstance().identify(userId);
     }
 }
 ```
 
-The `userId` parameter is your tracking unique identifier for the user. This ID is used to:
+Optional - The `userId` parameter is your tracking unique identifier for the user. This ID is used to:
 - Track individual user behavior patterns
 - Link analytics data in the Dashboard
 - Correlate data in WebHook deliveries
