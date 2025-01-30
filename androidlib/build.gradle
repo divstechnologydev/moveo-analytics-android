@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    id 'maven-publish'
 }
 
 android {
@@ -36,4 +37,17 @@ dependencies {
     compileOnly libs.lombok
     annotationProcessor libs.lombok
 
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.vjeftovic'
+                artifactId = 'moveoone-androidlib'
+                version = ' 1.0.0'
+            }
+        }
+    }
 }
