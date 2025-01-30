@@ -31,13 +31,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:text="@string/button_1" />
+            android:focusable="true"
+            android:text="@string/button_1"
+            android:clickable="true"/>
 
         <Button
             android:id="@+id/button_2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/button_2" />
+            android:focusable="true"
+            android:text="@string/button_2"
+            android:clickable="true"/>
 
     </LinearLayout>
 

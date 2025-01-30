@@ -37,40 +37,42 @@ public class MainActivity extends AppCompatActivity {
         button1 = findViewById(R.id.button_1);
         button2 = findViewById(R.id.button_2);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
         // Set up click listeners
         button1.setOnClickListener(v -> {
             MoveoOne.getInstance().tick(
-                new MoveoOneData(
-                    "main_activity_semantic",
-                    "button_1",
-                    BUTTON,
-                    CLICK,
-                    button1.getText().toString(),
-                    null
-                )
+                    new MoveoOneData(
+                            "main_activity_semantic",
+                            "button_1",
+                            BUTTON,
+                            CLICK,
+                            button1.getText().toString(),
+                            null
+                    )
             );
             Log.d(TAG, "Button 1 clicked");
         });
 
         button2.setOnClickListener(v -> {
             MoveoOne.getInstance().tick(
-                new MoveoOneData(
-                    "main_activity_semantic",
-                    "button_2",
-                    BUTTON,
-                    CLICK,
-                    button2.getText().toString(),
-                    null
-                )
+                    new MoveoOneData(
+                            "main_activity_semantic",
+                            "button_2",
+                            BUTTON,
+                            CLICK,
+                            button2.getText().toString(),
+                            null
+                    )
             );
             Log.d(TAG, "Button 2 clicked");
         });
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+
     }
 
     @Override

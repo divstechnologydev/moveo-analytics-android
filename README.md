@@ -4,8 +4,8 @@
 - [Introduction](#introduction)
 - [Quick Start Guide](#quick-start-guide)
   - [Initialize](#initialize)
-  - [Setup](#setup)
   - [Track Data](#track-data)
+  - [Advanced Usage](#advanced-usage)
   - [Obtain API KEY](#obtain-api-key)
   - [Use Results](#use-results)
 
@@ -13,104 +13,208 @@
 
 Welcome to the official Moveo One Android library.
 
-Moveo One analytics is a user cognitive-behavioral analytics tool. moveo-analytics-android is an SDK for Android client apps to use Moveo One tools.
+Moveo One analytics is a user cognitive-behavioral analytics tool designed to provide deep insights into user behavior and interaction patterns. The moveo-analytics-android SDK enables Android applications to leverage Moveo One's advanced analytics capabilities.
+
+### Key Features
+- Real-time user interaction tracking
+- Semantic grouping of user actions
+- Component-level analytics
+- Non-intrusive integration
+- Privacy-focused design
 
 ## Quick Start Guide
 
-Moveo One Android SDK is a pure Java/Kotlin implementation of Moveo One Analytics tracker.
+Moveo One Android SDK is a pure Java/Kotlin implementation of Moveo One Analytics tracker, designed to be lightweight and easy to integrate.
 
 ### Initialize
 
-Initialization is usually done in your Application class or main Activity. To obtain a token, please contact us at: info@moveo.one and request an API token. We are working on bringing token creation to our dashboard, but for now, due to the early phase, contact us and we will be more than happy to provide you with an API token.
+Initialization should be done early in your application lifecycle, typically in your Application class or main Activity.
 
 ```java
 import one.moveo.androidlib.MoveoOne;
 
-MoveoOne.getInstance().initialize(token);
-MoveoOne.getInstance().identify(userId);
+public class YourApplication extends Application {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        MoveoOne.getInstance().initialize(token);
+        MoveoOne.getInstance().identify(userId);
+    }
+}
 ```
 
-The `userId` is your tracking unique ID of the user who is using the app in order to create personalized analytics. It is used on Dashboard and WebHook to deliver calculated results, so you will need to have the notion of how this user Id correlates with your unique real userID.
+The `userId` parameter is your tracking unique identifier for the user. This ID is used to:
+- Track individual user behavior patterns
+- Link analytics data in the Dashboard
+- Correlate data in WebHook deliveries
 
-Note: Do not provide user-identifiable information to Moveo One - we do not store them, but nonetheless, we don't need that data, so it's better to create custom bindings.
+**Important Privacy Note**: Never use personally identifiable information (PII) as the userId. Instead:
+- Use application-specific unique identifiers
+- Consider using hashed or encoded values
+- Maintain a separate mapping of analytics IDs to user data in your system
 
 ### Track Data
 
 #### a) Semantic Groups
-Semantic groups are one level of abstraction. A semantic group is usually a screen - something that is semantically atomic from the user perspective. In our example app, we use "main_activity_semantic" as the semantic group for the main screen.
+Semantic groups provide context for your analytics data. They typically represent:
+- Screens or views
+- Functional areas
+- User flow segments
+
+Example semantic group usage:
+```java
+"main_activity_semantic"    // Main screen
+"checkout_semantic"         // Checkout flow
+"profile_semantic"         // User profile area
+```
 
 #### b) Component Types
-The library supports different component types that can be tracked:
-- `TEXT` - For text components
-- `BUTTON` - For clickable buttons
-- Other types as needed
+The library supports various UI component types:
+- `TEXT` - Text displays, labels, descriptions
+- `BUTTON` - Clickable buttons, action triggers
+- `INPUT` - Text input fields
+- `LIST` - Scrollable lists or grids
+- `MODAL` - Popup dialogs or modals
+- Custom types as needed
 
 #### c) Actions
-Available actions for tracking:
-- `CLICK` - User interactions like button clicks
-- `APPEAR` - Component appearances on screen
+Available tracking actions:
+- `CLICK` - User taps or clicks
+- `APPEAR` - Component becomes visible
 - `VIEW` - Content viewing events
+- `SCROLL` - List scrolling events
+- `INPUT` - Text input events
+- `FOCUS` - Component focus events
 
-#### d) Example Implementation
+#### d) Comprehensive Example
 
-Here's how to track different components:
+Here's a complete example showing different tracking scenarios:
 
 ```java
-// Track button clicks
-button1.setOnClickListener(v -> {
-    MoveoOne.getInstance().tick(
-        new MoveoOneData(
-            "main_activity_semantic",  // semantic group
-            "button_1",               // component id
-            BUTTON,                   // component type
-            CLICK,                    // action
-            button1.getText().toString(), // value
-            null                      // metadata
-        )
-    );
-});
-
-// Track component appearances
-@Override
-protected void onResume() {
-    super.onResume();
+public class MainActivity extends AppCompatActivity {
+    private static final String SEMANTIC_GROUP = "main_activity_semantic";
     
-    MoveoOne.getInstance().tick(
-        new MoveoOneData(
-            "main_activity_semantic",
-            "text_1",
-            TEXT,
-            APPEAR,
-            text1.getText().toString(),
-            null
-        )
-    );
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        // Track button interactions
+        button1.setOnClickListener(v -> {
+            MoveoOne.getInstance().tick(
+                new MoveoOneData(
+                    SEMANTIC_GROUP,
+                    "button_1",
+                    BUTTON,
+                    CLICK,
+                    button1.getText().toString(),
+                    null
+                )
+            );
+        });
+
+        // Track text input
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                MoveoOne.getInstance().tick(
+                    new MoveoOneData(
+                        SEMANTIC_GROUP,
+                        "input_field",
+                        INPUT,
+                        INPUT,
+                        "text_changed",
+                        null
+                    )
+                );
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+        // Track UI component appearances
+        trackComponentAppearance("text_1", TEXT, text1.getText().toString());
+        trackComponentAppearance("button_1", BUTTON, button1.getText().toString());
+        trackComponentAppearance("button_2", BUTTON, button2.getText().toString());
+    }
+
+    private void trackComponentAppearance(String id, MoveoOneType type, String value) {
+        MoveoOne.getInstance().tick(
+            new MoveoOneData(
+                SEMANTIC_GROUP,
+                id,
+                type,
+                APPEAR,
+                value,
+                null
+            )
+        );
+    }
 }
 ```
 
 #### e) MoveoOneData Structure
-The MoveoOneData class is used to send analytics data:
+The MoveoOneData class encapsulates all tracking information:
 ```java
 MoveoOneData(
-    String semanticGroup,  // Screen or context identifier
-    String id,            // Component identifier
-    MoveoOneType type,    // Component type (BUTTON, TEXT, etc.)
-    MoveoOneAction action, // Action type (CLICK, APPEAR, etc.)
-    String value,         // Component value
-    Map<String, String> metadata  // Optional additional data
+    String semanticGroup,  // Context identifier (required)
+    String id,            // Component identifier (required)
+    MoveoOneType type,    // Component type (required)
+    MoveoOneAction action, // Action type (required)
+    String value,         // Component value (optional)
+    Map<String, String> metadata  // Additional data (optional)
 )
+```
+
+### Advanced Usage
+
+#### Metadata
+The metadata parameter allows you to include additional context:
+```java
+Map<String, String> metadata = new HashMap<>();
+metadata.put("screen_orientation", "portrait");
+metadata.put("network_status", "wifi");
+
+MoveoOne.getInstance().tick(
+    new MoveoOneData(
+        SEMANTIC_GROUP,
+        "button_1",
+        BUTTON,
+        CLICK,
+        "submit",
+        metadata
+    )
+);
 ```
 
 ### Obtain API KEY
 
-To obtain an API key, please contact us at info@moveo.one. We will provide you with the necessary credentials to start using the analytics service.
+To obtain an API key:
+1. Contact us at info@moveo.one
+2. Provide your application details
+3. We'll provide you with a unique API token
+4. Integration support is available upon request
 
 ### Use Results
 
 #### Data Ingestion
-The MoveoOne library automatically handles data ingestion by sending analytics events to our servers when you call the `tick()` method.
+The MoveoOne library handles:
+- Automatic data collection
+- Efficient event batching
+- Reliable data transmission
+- Offline data queuing
 
-#### Dashboard
-Once your data is being collected, you can view and analyze it through our dashboard. Contact us for dashboard access and detailed analytics of your users' behavior.
-```
+#### Dashboard Access
+The Moveo One Dashboard provides:
+- Real-time analytics viewing
+- User behavior patterns
+- Interaction flow visualization
+- Custom report generation
+- Data export capabilities
+
+
+Contact us for dashboard access and detailed documentation on interpreting your analytics data.
 
