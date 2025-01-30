@@ -44,7 +44,7 @@ afterEvaluate {
         publications {
             release(MavenPublication) {
                 from components.release
-                groupId = 'com.github.vjeftovic'
+                groupId = 'com.github.divstechnologydev'
                 artifactId = 'moveoone-androidlib'
                 version = ' 1.0.0'
             }
