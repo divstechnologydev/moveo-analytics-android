@@ -15,9 +15,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import lombok.Getter;
+
 
 public class MoveoOne {
     public static final String TAG = "MOVEO_ONE";
+    @Getter
     private static final MoveoOne instance = new MoveoOne();
     private final List<MoveoOneEntity> buffer = new ArrayList<>();
     private String token = "";
@@ -35,21 +38,12 @@ public class MoveoOne {
     private MoveoOne() {
 
     }
-
-    public static MoveoOne getInstance() {
-        return instance;
-    }
-
     public void initialize(String token) {
         this.token = token;
     }
 
     public void identify(String userId) {
         this.userId = userId;
-    }
-
-    public String getToken() {
-        return this.token;
     }
 
     public void setLogging(boolean enabled) {

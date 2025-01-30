@@ -20,13 +20,22 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
 }
 
-// Moved configurations block after plugins
-configurations.all {
-    resolutionStrategy {
-        force "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-        force "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'org.jetbrains.kotlin') {
+                    details.useVersion kotlin_version
+                }
+            }
+            force(
+                "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version",
+                "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version",
+                "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+            )
+        }
     }
 }
 

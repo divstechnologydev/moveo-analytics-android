@@ -27,9 +27,15 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        MoveoOne moveoOne = MoveoOne.getInstance();
-        moveoOne.start("context");
-        moveoOne.setLogging(true);
-        moveoOne.track("context", new MoveoOneData("sg", "id", BUTTON, Constants.MoveoOneAction.CLICK, "test", null));
+        MoveoOne.getInstance().tick(
+                new MoveoOneData(
+                        "sg",
+                        "id",
+                        BUTTON,
+                        Constants.MoveoOneAction.CLICK,
+                        "test",
+                        null
+                )
+        );
     }
 }
