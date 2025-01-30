@@ -2,6 +2,7 @@
 
 ## Table of Contents
 - [Introduction](#introduction)
+- [Installation](#installation)
 - [Quick Start Guide](#quick-start-guide)
   - [Initialize](#initialize)
   - [Track Data](#track-data)
@@ -13,7 +14,25 @@
 
 Welcome to the official Moveo One Android library.
 
+## Installation
+
 Moveo One analytics is a user cognitive-behavioral analytics tool designed to provide deep insights into user behavior and interaction patterns. The moveo-analytics-android SDK enables Android applications to leverage Moveo One's advanced analytics capabilities.
+
+Add it to your build.gradle with:
+```gradle
+allprojects {
+    repositories {
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+and:
+
+```gradle
+dependencies {
+	implementation 'com.github.divstechnologydev:moveo-analytics-android:v1.0.2'
+}
+```
 
 ### Key Features
 - Real-time user interaction tracking
