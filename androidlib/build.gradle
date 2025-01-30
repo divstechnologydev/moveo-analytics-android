@@ -43,10 +43,10 @@ afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                from components.release
+                from components.findByName("release") ?: components.findByName("debug")
                 groupId = 'com.github.divstechnologydev'
                 artifactId = 'moveoone-androidlib'
-                version = ' 1.0.0'
+                version = ' 1.0.2'
             }
         }
     }
