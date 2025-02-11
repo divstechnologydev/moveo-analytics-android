@@ -60,6 +60,10 @@ public class YourApplication extends Application {
         
         // Optionally - identify user
         MoveoOne.getInstance().identify(userId);
+        
+        // Starts the tracking session - optionally, place it to another place to start tracking
+        // !!! but importantly prior to first track/tick event !!!
+        MoveoOne.getInstance().start("your_context_eg_onboarding-app-settings");
     }
 }
 ```
