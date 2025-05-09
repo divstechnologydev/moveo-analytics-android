@@ -1,9 +1,5 @@
 package one.moveo.simpleexample;
 
-import static one.moveo.androidlib.Constants.MoveoOneAction.APPEAR;
-import static one.moveo.androidlib.Constants.MoveoOneAction.CLICK;
-import static one.moveo.androidlib.Constants.MoveoOneType.BUTTON;
-import static one.moveo.androidlib.Constants.MoveoOneType.TEXT;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -40,30 +36,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up click listeners
         button1.setOnClickListener(v -> {
-            MoveoOne.getInstance().tick(
-                    new MoveoOneData(
-                            "main_activity_semantic",
-                            "button_1",
-                            BUTTON,
-                            CLICK,
-                            button1.getText().toString(),
-                            null
-                    )
-            );
+
             Log.d(TAG, "Button 1 clicked");
         });
 
         button2.setOnClickListener(v -> {
-            MoveoOne.getInstance().tick(
-                    new MoveoOneData(
-                            "main_activity_semantic",
-                            "button_2",
-                            BUTTON,
-                            CLICK,
-                            button2.getText().toString(),
-                            null
-                    )
-            );
+
             Log.d(TAG, "Button 2 clicked");
         });
 
@@ -88,39 +66,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Button1 text: " + button1text);
         Log.d(TAG, "Button2 state: " + button2text);
 
-        // Log analytics for resume event
-        MoveoOne.getInstance().tick(
-            new MoveoOneData(
-                "main_activity_semantic",
-                "text_1",
-                TEXT,
-                APPEAR,
-                text1text,
-                null
-            )
-        );
 
-        MoveoOne.getInstance().tick(
-                new MoveoOneData(
-                        "main_activity_semantic",
-                        "button_1",
-                        BUTTON,
-                        APPEAR,
-                        button1text,
-                        null
-                )
-        );
-
-
-        MoveoOne.getInstance().tick(
-                new MoveoOneData(
-                        "main_activity_semantic",
-                        "button_2",
-                        BUTTON,
-                        APPEAR,
-                        button2text,
-                        null
-                )
-        );
     }
 }
