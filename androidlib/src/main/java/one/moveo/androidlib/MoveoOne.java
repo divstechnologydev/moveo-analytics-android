@@ -69,13 +69,18 @@ public class MoveoOne {
             this.started = true;
             this.context = context;
             this.sessionId = "sid_" + UUID.randomUUID().toString();
+
+            Map<String, String> updatedMetadata = new HashMap<>();
+            updatedMetadata.put("lib_version", Constants.libVersion);
+
+
             this.addEventToBuffer(
                     context,
                     START_SESSION,
                     new HashMap<>(),
                     this.userId,
                     this.sessionId,
-                    new HashMap<>()
+                    updatedMetadata
                     );
             this.flushOrRecord(false);
         }

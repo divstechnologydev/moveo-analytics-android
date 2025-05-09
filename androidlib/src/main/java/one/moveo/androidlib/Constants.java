@@ -4,6 +4,8 @@ import lombok.Getter;
 
 public class Constants {
 
+    public static String libVersion="1.0.3";
+
     @Getter
     public enum Environment {
         DEVELOPMENT("development"),
@@ -55,6 +57,7 @@ public class Constants {
         WEB_VIEW("webView"),
         SCROLL_VIEW("scrollView"),
         ACTIVITY_INDICATOR("activityIndicator"),
+        VIEW("view"),
         VIDEO("video"),
         VIDEO_PLAYER("videoPlayer"),
         AUDIO_PLAYER("audioPlayer"),
