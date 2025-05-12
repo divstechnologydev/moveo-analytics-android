@@ -3,6 +3,9 @@ plugins {
     id 'maven-publish'
 }
 
+group = 'com.github.divstechnologydev'
+version = '1.0.8'
+
 android {
     namespace 'one.moveo.androidlib'
     compileSdk 34
@@ -44,9 +47,9 @@ afterEvaluate {
         publications {
             release(MavenPublication) {
                 from components.findByName("release") ?: components.findByName("debug")
-                groupId = 'com.github.divstechnologydev'
-                artifactId = 'moveoone-androidlib'
-                version = '1.0.7'
+                groupId = project.group
+                artifactId = 'moveo-analytics-android'
+                version = project.version
             }
         }
     }
