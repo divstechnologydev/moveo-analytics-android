@@ -6,19 +6,21 @@ public class Constants {
 
     public static String libVersion="1.0.3";
 
-    @Getter
     public enum Environment {
         DEVELOPMENT("development"),
         PRODUCTION("production");
 
         private final String value;
 
+        public String getValue() {
+            return value;
+        }
+
         Environment(String value) {
             this.value = value;
         }
     }
 
-    @Getter
     public enum MoveoOneEventType {
         START_SESSION("start_session"),
         TRACK("track"),
@@ -26,13 +28,16 @@ public class Constants {
 
         private final String value;
 
+        public String getValue() {
+            return value;
+        }
+
         MoveoOneEventType(String value) {
             this.value = value;
         }
 
     }
 
-    @Getter
     public enum MoveoOneType {
         BUTTON("button"),
         TEXT("text"),
@@ -81,13 +86,16 @@ public class Constants {
 
         private final String value;
 
+        public String getValue() {
+            return value;
+        }
+
         MoveoOneType(String value) {
             this.value = value;
         }
 
     }
 
-    @Getter
     public enum MoveoOneAction {
         CLICK("click"),
         VIEW("view"),
@@ -134,8 +142,14 @@ public class Constants {
 
         private final String value;
 
+        public String getValue() {
+            return value;
+        }
+
         MoveoOneAction(String value) {
             this.value = value;
         }
+
+
     }
 }

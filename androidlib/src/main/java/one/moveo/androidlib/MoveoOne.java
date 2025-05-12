@@ -27,7 +27,6 @@ public class MoveoOne {
     public static final String TAG = "MOVEO_ONE";
     public static final String API_ENDPOINT = "https://api.moveo.one/api/analytic/event";
 
-    @Getter
     private static final MoveoOne instance = new MoveoOne();
     private final List<MoveoOneEntity> buffer = new ArrayList<>();
 
@@ -35,9 +34,9 @@ public class MoveoOne {
     private String token = "";
     private String userId = "";
 
-    @Setter
+
     private boolean logging = false;
-    @Setter
+
     private int flushInterval = 10;
     private int maxThreshold = 500;
     private Timer flushTimer = null;
@@ -49,9 +48,22 @@ public class MoveoOne {
     private MoveoOne() {
 
     }
+
+    public static MoveoOne getInstance() {
+        return instance;
+    }
+
     public void initialize(String token) {
         this.token = token;
         log("Initialized");
+    }
+
+    public void setLogging(boolean logging) {
+        this.logging = logging;
+    }
+
+    public void setFlushInterval(int flushInterval) {
+        this.flushInterval = flushInterval;
     }
 
     public void identify(String userId) {
