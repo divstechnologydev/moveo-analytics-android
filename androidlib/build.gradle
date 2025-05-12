@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.github.divstechnologydev'
-version = '1.0.8'
+version = '1.0.9'
 
 android {
     namespace 'one.moveo.androidlib'
@@ -46,7 +46,7 @@ afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                from components.findByName("release") ?: components.findByName("debug")
+                from components.release
                 groupId = project.group
                 artifactId = 'moveo-analytics-android'
                 version = project.version
