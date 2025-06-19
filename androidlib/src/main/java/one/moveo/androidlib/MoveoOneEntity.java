@@ -1,5 +1,6 @@
 package one.moveo.androidlib;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
@@ -14,8 +15,10 @@ public class MoveoOneEntity {
     private Map<String, String> prop;
     private Map<String, String> meta;
     private String sId;
+    private Map<String, String> additionalMeta; // New field for additional metadata
 
-    public MoveoOneEntity(String c, String type, String userId, Long t, Map<String, String> prop, Map<String, String> meta, String sId) {
+    // Constructor with all fields including additional metadata
+    public MoveoOneEntity(String c, String type, String userId, Long t, Map<String, String> prop, Map<String, String> meta, String sId, Map<String, String> additionalMeta) {
         this.c = c;
         this.type = type;
         this.userId = userId;
@@ -23,6 +26,12 @@ public class MoveoOneEntity {
         this.prop = prop;
         this.meta = meta;
         this.sId = sId;
+        this.additionalMeta = additionalMeta;
+    }
+
+    // Constructor without additional metadata (sets it to empty map)
+    public MoveoOneEntity(String c, String type, String userId, Long t, Map<String, String> prop, Map<String, String> meta, String sId) {
+        this(c, type, userId, t, prop, meta, sId, new HashMap<>());
     }
 
     public String getC() {
@@ -79,5 +88,13 @@ public class MoveoOneEntity {
 
     public void setSId(String sId) {
         this.sId = sId;
+    }
+
+    public Map<String, String> getAdditionalMeta() {
+        return additionalMeta;
+    }
+
+    public void setAdditionalMeta(Map<String, String> additionalMeta) {
+        this.additionalMeta = additionalMeta;
     }
 }

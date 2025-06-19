@@ -4,7 +4,7 @@ import lombok.Getter;
 
 public class Constants {
 
-    public static String libVersion="1.0.3";
+    public static String libVersion="1.0.12";
 
     public enum Environment {
         DEVELOPMENT("development"),
