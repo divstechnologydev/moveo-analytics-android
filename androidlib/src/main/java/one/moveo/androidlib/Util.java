@@ -75,6 +75,9 @@ public class Util {
                     if (entity.getMeta() != null) {
                         jsonEntity.put("meta", new JSONObject(entity.getMeta()));
                     }
+                    if (entity.getAdditionalMeta() != null){
+                        jsonEntity.put("additionalMeta", new JSONObject(entity.getAdditionalMeta()));
+                    }
                     jsonEntity.put("sId", entity.getSId());
                     jsonArray.put(jsonEntity);
                 }
