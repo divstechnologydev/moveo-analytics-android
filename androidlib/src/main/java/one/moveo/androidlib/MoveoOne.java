@@ -34,7 +34,6 @@ public class MoveoOne {
     private String token = "";
     private String userId = "";
 
-
     private boolean logging = false;
 
     private int flushInterval = 10;
@@ -85,7 +84,6 @@ public class MoveoOne {
             Map<String, String> updatedMetadata = new HashMap<>();
             updatedMetadata.put("lib_version", Constants.libVersion);
 
-
             this.addEventToBuffer(
                     context,
                     START_SESSION,
@@ -93,7 +91,7 @@ public class MoveoOne {
                     this.userId,
                     this.sessionId,
                     updatedMetadata
-                    );
+            );
             this.flushOrRecord(false);
         }
     }
@@ -175,6 +173,29 @@ public class MoveoOne {
         }
     }
 
+    /**
+     * Sends an UPDATE_METADATA event with additional metadata.
+     * The additional metadata is sent as a one-time event and doesn't persist.
+     *
+     * @param additionalMetadata The additional metadata to send in the update event
+     */
+    public void updateAdditionalMetadata(Map<String, String> additionalMetadata) {
+        log("update additional metadata");
+        if (this.started) {
+            // Send an UPDATE_METADATA event with the additional metadata
+            this.addEventToBuffer(
+                    this.context,
+                    UPDATE_METADATA,
+                    new HashMap<>(), // empty properties
+                    this.userId,
+                    this.sessionId,
+                    new HashMap<>(), // empty metadata
+                    additionalMetadata // additional metadata goes here
+            );
+            this.flushOrRecord(false);
+        }
+    }
+
     private void flushOrRecord(boolean isStopOrStart) {
         if (!customPush) {
             if (buffer.size() >= maxThreshold || isStopOrStart) {
@@ -215,13 +236,15 @@ public class MoveoOne {
         this.flushOrRecord(false);
     }
 
+    // Method with additional metadata (used by updateAdditionalMetadata)
     private void addEventToBuffer(
             String context,
             Constants.MoveoOneEventType type,
             Map<String, String> prop,
             String userId,
             String sessionId,
-            Map<String, String> meta
+            Map<String, String> meta,
+            Map<String, String> additionalMeta
     ) {
         long now = System.currentTimeMillis();
         this.buffer.add(new MoveoOneEntity(
@@ -231,8 +254,21 @@ public class MoveoOne {
                 now,
                 prop,
                 meta,
-                sessionId
+                sessionId,
+                additionalMeta // pass additional metadata to entity
         ));
+    }
+
+    // Method without additional metadata (used by all other calls)
+    private void addEventToBuffer(
+            String context,
+            Constants.MoveoOneEventType type,
+            Map<String, String> prop,
+            String userId,
+            String sessionId,
+            Map<String, String> meta
+    ) {
+        addEventToBuffer(context, type, prop, userId, sessionId, meta, new HashMap<>());
     }
 
     private void flush() {
@@ -249,7 +285,8 @@ public class MoveoOne {
                         entity.getT(),
                         entity.getProp(),
                         entity.getMeta(),
-                        entity.getSId()
+                        entity.getSId(),
+                        entity.getAdditionalMeta()
                 ));
 
             }
