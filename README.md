@@ -1,38 +1,27 @@
-# moveo-analytics-android
+# Moveo One Analytics for Android
+
+![Moveo One Logo](https://www.moveo.one/assets/og_white.png)
 
 ## Table of Contents
 - [Introduction](#introduction)
-- [Installation](#installation)
 - [Quick Start Guide](#quick-start-guide)
-  - [Initialize](#initialize)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Library Initialization](#library-initialization)
+  - [Setup](#setup)
+  - [Metadata and Additional Metadata](#metadata-and-additional-metadata)
   - [Track Data](#track-data)
-  - [Advanced Usage](#advanced-usage)
-  - [Obtain API KEY](#obtain-api-key)
-  - [Use Results](#use-results)
+- [Event Types and Actions](#event-types-and-actions)
+- [Comprehensive Example Usage](#comprehensive-example-usage)
+- [Obtain API Key](#obtain-api-key)
+- [Dashboard Access](#dashboard-access)
+- [Support](#support)
 
 ## Introduction
 
-Welcome to the official Moveo One Android library.
+Moveo One Analytics is a user cognitive-behavioral analytics tool designed to provide deep insights into user behavior and interaction patterns. The moveo-analytics-android SDK enables Android applications to leverage Moveo One's advanced analytics capabilities with a lightweight, non-intrusive integration.
 
-## Installation
-
-Moveo One analytics is a user cognitive-behavioral analytics tool designed to provide deep insights into user behavior and interaction patterns. The moveo-analytics-android SDK enables Android applications to leverage Moveo One's advanced analytics capabilities.
-
-Add it to your build.gradle with:
-```gradle
-allprojects {
-    repositories {
-        maven { url "https://jitpack.io" }
-    }
-}
-```
-and:
-
-```gradle
-dependencies {
-	implementation 'com.github.divstechnologydev:moveo-analytics-android:v1.0.2'
-}
-```
+**Current version:** 1.0.12
 
 ### Key Features
 - Real-time user interaction tracking
@@ -40,14 +29,38 @@ dependencies {
 - Component-level analytics
 - Non-intrusive integration
 - Privacy-focused design
+- Automatic data batching and transmission
 
 ## Quick Start Guide
 
-Moveo One Android SDK is a pure Java/Kotlin implementation of Moveo One Analytics tracker, designed to be lightweight and easy to integrate.
+### Prerequisites
+- Android API level 21 or higher
+- Internet connectivity for data transmission
+- Moveo One API key (obtain from [app.moveo.one](https://app.moveo.one/))
 
-### Initialize
+### Installation
 
-Initialization should be done early in your application lifecycle, typically in your Application class or main Activity - or any other entry point of your choice.
+Add the JitPack repository to your project-level `build.gradle`:
+
+```gradle
+allprojects {
+    repositories {
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+
+Add the dependency to your app-level `build.gradle`:
+
+```gradle
+dependencies {
+    implementation 'com.github.divstechnologydev:moveo-analytics-android:v1.0.12'
+}
+```
+
+### Library Initialization
+
+Initialize the library early in your application lifecycle, typically in your Application class:
 
 ```java
 import one.moveo.androidlib.MoveoOne;
@@ -56,64 +69,294 @@ public class YourApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        MoveoOne.getInstance().initialize(token);
         
-        // Optionally - identify user
-        MoveoOne.getInstance().identify(userId);
+        // Initialize with your API token
+        MoveoOne.getInstance().initialize("YOUR_API_KEY");
         
-        // Starts the tracking session - optionally, place it to another place to start tracking
-        // !!! but importantly prior to first track/tick event !!!
-        MoveoOne.getInstance().start("your_context_eg_onboarding-app-settings");
+        // Start tracking session (must be called before any track/tick events)
+        MoveoOne.getInstance().start("your_context_name");
     }
 }
 ```
 
-Optional - The `userId` parameter is your tracking unique identifier for the user. This ID is used to:
-- Track individual user behavior patterns
-- Link analytics data in the Dashboard
-- Correlate data in WebHook deliveries
 
-**Important Privacy Note**: Never use personally identifiable information (PII) as the userId. Instead:
-- Use application-specific unique identifiers
-- Consider using hashed or encoded values
-- Maintain a separate mapping of analytics IDs to user data in your system
+
+### Setup
+
+Configure optional parameters for your tracking needs:
+
+```java
+// Enable debug logging (optional)
+MoveoOne.getInstance().setLogging(true);
+
+// Set custom flush interval in seconds (default: 10 seconds)
+MoveoOne.getInstance().setFlushInterval(20);
+```
+
+### Metadata and Additional Metadata
+
+The library supports metadata in both `track()` and `tick()` events, plus session-level metadata management.
+
+#### Metadata in Track and Tick Events
+
+```java
+Map<String, String> metadata = new HashMap<>();
+metadata.put("screen", "checkout");
+metadata.put("button_type", "primary");
+metadata.put("user_type", "premium");
+metadata.put("cart_total", "99.99");
+
+// Using metadata with track()
+MoveoOne.getInstance().track(
+    "checkout_screen",
+    new MoveoOneData(
+        "user_interactions",
+        "checkout_button",
+        Constants.MoveoOneType.BUTTON,
+        Constants.MoveoOneAction.CLICK,
+        "proceed_to_payment",
+        metadata
+    )
+);
+
+// Using metadata with tick()
+MoveoOne.getInstance().tick(
+    new MoveoOneData(
+        "content_interactions",
+        "product_card",
+        Constants.MoveoOneType.CARD,
+        Constants.MoveoOneAction.APPEAR,
+        "product_view",
+        metadata
+    )
+);
+```
+
+#### Session Metadata Management
+
+**updateSessionMetadata()** - Replaces the entire session metadata:
+
+```java
+Map<String, String> sessionMetadata = new HashMap<>();
+sessionMetadata.put("user_preference", "dark_mode");
+sessionMetadata.put("current_section", "checkout");
+sessionMetadata.put("language", "en_US");
+
+MoveoOne.getInstance().updateSessionMetadata(sessionMetadata);
+```
+
+**updateAdditionalMetadata()** - Adds additional metadata while preserving existing:
+
+```java
+Map<String, String> additionalMetadata = new HashMap<>();
+additionalMetadata.put("experiment_feature_flag", "enabled");
+additionalMetadata.put("experiment_assigned", "2024-01-15T10:30:00Z");
+
+MoveoOne.getInstance().updateAdditionalMetadata(additionalMetadata);
+```
 
 ### Track Data
 
-#### a) Semantic Groups
-Semantic groups provide context for your analytics data. They typically represent:
-- Screens or views
-- Functional areas
-- User flow segments
+#### Understanding Context and Session Management
 
-Example semantic group usage:
+**Single Session, Single Start**
+- Call `start()` only **once at the beginning of a session**
+- Must be called before any `track()` or `tick()` calls
+- You do **not** need multiple `start()` calls for multiple contexts
+
+#### When to Use Each Tracking Method
+
+**Use `track()` when:**
+- You want to explicitly specify the event context
+- You need to change context between events
+- You want to use a different context than the one specified in the start method
+
+**Use `tick()` when:**
+- You're tracking events within the same context
+- You want tracking without explicitly defining context
+- You want to track events in the same context specified in the start method
+
+#### Context and Semantic Groups
+
+**Context** represents large, independent parts of the application and serves to divide the app into functional units that can exist independently of each other.
+
+Examples: `onboarding`, `main_app_flow`, `checkout_process`
+
+**Semantic Groups** are logical units within a context that group related elements. Depending on the application, this could be a group of elements or an entire screen (most common).
+
+Examples: `navigation`, `user_input`, `content_interaction`
+
+#### Tracking Examples
+
 ```java
-"main_activity_semantic"    // Main screen
-"checkout_semantic"         // Checkout flow
-"profile_semantic"         // User profile area
+// Track button click with explicit context
+MoveoOne.getInstance().track(
+    "checkout_screen",
+    new MoveoOneData(
+        "user_interactions",
+        "submit_order_button",
+        Constants.MoveoOneType.BUTTON,
+        Constants.MoveoOneAction.CLICK,
+        "Submit Order",
+        null
+    )
+);
+
+// Track component appearance in current context
+MoveoOne.getInstance().tick(
+    new MoveoOneData(
+        "content_interactions",
+        "product_list",
+        Constants.MoveoOneType.COLLECTION,
+        Constants.MoveoOneAction.APPEAR,
+        "Product Catalog",
+        null
+    )
+);
+
+// Track text input with metadata
+Map<String, String> inputMetadata = new HashMap<>();
+inputMetadata.put("field_type", "email");
+inputMetadata.put("validation_status", "valid");
+
+MoveoOne.getInstance().tick(
+    new MoveoOneData(
+        "user_input",
+        "email_field",
+        Constants.MoveoOneType.TEXT_EDIT,
+        Constants.MoveoOneAction.INPUT,
+        "user@example.com",
+        inputMetadata
+    )
+);
 ```
 
-#### b) Component Types
-The library supports various UI component types:
-- `TEXT` - Text displays, labels, descriptions
+## Event Types and Actions
+
+### Event Types
+
+The library supports comprehensive UI component types:
+
+**Basic Components:**
 - `BUTTON` - Clickable buttons, action triggers
-- `INPUT` - Text input fields
-- `LIST` - Scrollable lists or grids
-- `MODAL` - Popup dialogs or modals
-- Custom types as needed
+- `TEXT` - Text displays, labels, descriptions
+- `TEXT_EDIT` - Text input fields
+- `IMAGE` - Single images
+- `IMAGES` - Multiple images
+- `IMAGE_SCROLL_HORIZONTAL` - Horizontally scrollable images
+- `IMAGE_SCROLL_VERTICAL` - Vertically scrollable images
 
-#### c) Actions
-Available tracking actions:
+**Interactive Controls:**
+- `PICKER` - Selection pickers
+- `SLIDER` - Slider controls
+- `SWITCH_CONTROL` - Toggle switches
+- `PROGRESS_BAR` - Progress indicators
+- `CHECKBOX` - Checkbox controls
+- `RADIO_BUTTON` - Radio button groups
+- `SEGMENTED_CONTROL` - Segmented controls
+- `STEPPER` - Stepper controls
+- `DATE_PICKER` - Date selection
+- `TIME_PICKER` - Time selection
+- `SEARCH_BAR` - Search input fields
+
+**Layout Components:**
+- `TABLE` - Data tables
+- `COLLECTION` - Collections of items
+- `SCROLL_VIEW` - Scrollable views
+- `VIEW` - Generic views
+- `GRID` - Grid layouts
+- `CARD` - Card components
+- `CHIP` - Chip components
+
+**Media Components:**
+- `VIDEO` - Video content
+- `VIDEO_PLAYER` - Video players
+- `AUDIO_PLAYER` - Audio players
+- `MAP` - Map components
+
+**Navigation Components:**
+- `TAB_BAR` - Tab bars
+- `TAB_BAR_PAGE` - Tab bar pages
+- `TAB_BAR_PAGE_TITLE` - Tab page titles
+- `TAB_BAR_PAGE_SUBTITLE` - Tab page subtitles
+- `TOOLBAR` - Toolbars
+
+**Feedback Components:**
+- `ALERT` - Alert dialogs
+- `ALERT_TITLE` - Alert titles
+- `ALERT_SUBTITLE` - Alert subtitles
+- `MODAL` - Modal dialogs
+- `TOAST` - Toast messages
+- `BADGE` - Badge indicators
+- `DROPDOWN` - Dropdown menus
+- `ACTIVITY_INDICATOR` - Loading indicators
+
+**Custom:**
+- `CUSTOM` - Custom component types
+
+### Event Actions
+
+**User Interactions:**
 - `CLICK` - User taps or clicks
+- `TAP` - Single tap
+- `DOUBLE_TAP` - Double tap
+- `LONG_PRESS` - Long press gesture
+- `SWIPE` - Swipe gesture
+- `DRAG` - Drag gesture
+- `DROP` - Drop action
+- `PINCH` - Pinch gesture
+- `ZOOM` - Zoom gesture
+- `ROTATE` - Rotate gesture
+
+**Visibility Events:**
 - `APPEAR` - Component becomes visible
+- `DISAPPEAR` - Component becomes hidden
 - `VIEW` - Content viewing events
-- `SCROLL` - List scrolling events
+
+**Input Events:**
 - `INPUT` - Text input events
-- `FOCUS` - Component focus events
+- `VALUE_CHANGE` - Value changes
+- `FOCUS` - Component gains focus
+- `BLUR` - Component loses focus
+- `SELECT` - Selection made
+- `DESELECT` - Selection removed
 
-#### d) Comprehensive Example
+**Navigation Events:**
+- `SCROLL` - Scrolling events
+- `DRAG_START` - Drag begins
+- `DRAG_END` - Drag ends
+- `OPEN` - Component opens
+- `CLOSE` - Component closes
+- `EXPAND` - Component expands
+- `COLLAPSE` - Component collapses
 
-Here's a complete example showing different tracking scenarios:
+**Form Events:**
+- `SUBMIT` - Form submission
+- `EDIT` - Editing begins
+- `CANCEL` - Action cancelled
+- `RETRY` - Retry action
+
+**Media Events:**
+- `PLAY` - Media starts playing
+- `PAUSE` - Media pauses
+- `STOP` - Media stops
+- `SEEK` - Media seeking
+- `LOAD` - Content loads
+- `UNLOAD` - Content unloads
+- `REFRESH` - Content refreshes
+
+**Status Events:**
+- `SUCCESS` - Successful action
+- `ERROR` - Error occurs
+- `SHARE` - Content sharing
+- `HOVER` - Hover over component
+
+**Custom:**
+- `CUSTOM` - Custom actions
+
+## Comprehensive Example Usage
+
+Here's a complete example showing different tracking scenarios in an e-commerce app:
 
 ```java
 public class MainActivity extends AppCompatActivity {
@@ -124,122 +367,160 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
+        // Initialize Moveo One (if not done in Application class)
+        MoveoOne.getInstance().initialize("YOUR_API_KEY");
+        MoveoOne.getInstance().start("main_app_flow");
+        
+        setupTracking();
+    }
+    
+    private void setupTracking() {
         // Track button interactions
-        button1.setOnClickListener(v -> {
+        Button addToCartButton = findViewById(R.id.add_to_cart_button);
+        addToCartButton.setOnClickListener(v -> {
+            Map<String, String> metadata = new HashMap<>();
+            metadata.put("product_id", "12345");
+            metadata.put("price", "29.99");
+            metadata.put("category", "electronics");
+            
             MoveoOne.getInstance().tick(
                 new MoveoOneData(
                     SEMANTIC_GROUP,
-                    "button_1",
-                    BUTTON,
-                    CLICK,
-                    button1.getText().toString(),
-                    null
+                    "add_to_cart_button",
+                    Constants.MoveoOneType.BUTTON,
+                    Constants.MoveoOneAction.CLICK,
+                    "Add to Cart",
+                    metadata
                 )
             );
         });
-
-        // Track text input
-        editText.addTextChangedListener(new TextWatcher() {
+        
+        // Track search input
+        EditText searchInput = findViewById(R.id.search_input);
+        searchInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
+                Map<String, String> metadata = new HashMap<>();
+                metadata.put("input_length", String.valueOf(s.length()));
+                metadata.put("has_results", s.length() > 2 ? "true" : "false");
+                
                 MoveoOne.getInstance().tick(
                     new MoveoOneData(
                         SEMANTIC_GROUP,
-                        "input_field",
-                        INPUT,
-                        INPUT,
-                        "text_changed",
-                        null
+                        "search_input",
+                        Constants.MoveoOneType.SEARCH_BAR,
+                        Constants.MoveoOneAction.INPUT,
+                        s.toString(),
+                        metadata
                     )
                 );
             }
+            
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        });
+        
+        // Track product list scrolling
+        RecyclerView productList = findViewById(R.id.product_list);
+        productList.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (Math.abs(dy) > 10) { // Only track significant scrolls
+                    MoveoOne.getInstance().tick(
+                        new MoveoOneData(
+                            SEMANTIC_GROUP,
+                            "product_list",
+                            Constants.MoveoOneType.COLLECTION,
+                            Constants.MoveoOneAction.SCROLL,
+                            "vertical_scroll",
+                            null
+                        )
+                    );
+                }
+            }
         });
     }
-
+    
     @Override
     protected void onResume() {
         super.onResume();
         
         // Track UI component appearances
-        trackComponentAppearance("text_1", TEXT, text1.getText().toString());
-        trackComponentAppearance("button_1", BUTTON, button1.getText().toString());
-        trackComponentAppearance("button_2", BUTTON, button2.getText().toString());
+        trackComponentAppearance("welcome_text", Constants.MoveoOneType.TEXT, "Welcome to our store");
+        trackComponentAppearance("product_grid", Constants.MoveoOneType.GRID, "Product Catalog");
+        trackComponentAppearance("search_bar", Constants.MoveoOneType.SEARCH_BAR, "Search products");
     }
-
-    private void trackComponentAppearance(String id, MoveoOneType type, String value) {
+    
+    private void trackComponentAppearance(String id, Constants.MoveoOneType type, String value) {
         MoveoOne.getInstance().tick(
             new MoveoOneData(
                 SEMANTIC_GROUP,
                 id,
                 type,
-                APPEAR,
+                Constants.MoveoOneAction.APPEAR,
                 value,
                 null
             )
         );
     }
+    
+    // Example of switching context for checkout flow
+    private void startCheckoutFlow() {
+        // Switch to checkout context
+        MoveoOne.getInstance().track(
+            "checkout_flow",
+            new MoveoOneData(
+                "checkout_initiation",
+                "checkout_button",
+                Constants.MoveoOneType.BUTTON,
+                Constants.MoveoOneAction.CLICK,
+                "Proceed to Checkout",
+                null
+            )
+        );
+        
+        // Update session metadata for checkout
+        Map<String, String> checkoutMetadata = new HashMap<>();
+        checkoutMetadata.put("flow_type", "checkout");
+        checkoutMetadata.put("cart_items_count", "3");
+        checkoutMetadata.put("total_amount", "89.97");
+        
+        MoveoOne.getInstance().updateSessionMetadata(checkoutMetadata);
+    }
 }
 ```
 
-#### e) MoveoOneData Structure
-The MoveoOneData class encapsulates all tracking information:
-```java
-MoveoOneData(
-    String semanticGroup,  // Context identifier (required)
-    String id,            // Component identifier (required)
-    MoveoOneType type,    // Component type (required)
-    MoveoOneAction action, // Action type (required)
-    String value,         // Component value (optional)
-    Map<String, String> metadata  // Additional data (optional)
-)
-```
+## Obtain API Key
 
-### Advanced Usage
+To obtain an API key for Moveo One Analytics:
 
-#### Metadata
-The metadata parameter allows you to include additional context:
-```java
-Map<String, String> metadata = new HashMap<>();
-metadata.put("screen_orientation", "portrait");
-metadata.put("network_status", "wifi");
+1. Visit [app.moveo.one](https://app.moveo.one/)
+2. Create an account or sign in
+3. Navigate to your organization settings
+4. Generate a new API key
+5. Use this key in your `initialize()` method
 
-MoveoOne.getInstance().tick(
-    new MoveoOneData(
-        SEMANTIC_GROUP,
-        "button_1",
-        BUTTON,
-        CLICK,
-        "submit",
-        metadata
-    )
-);
-```
+## Dashboard Access
 
-### Obtain API KEY
+Once your data is being tracked, you can access your analytics through the Moveo One Dashboard at [https://app.moveo.one/](https://app.moveo.one/)
 
-To obtain an API key:
-1. Contact us at info@moveo.one
-2. Provide your application details
-3. We'll provide you with a unique API token
-4. Integration support is available upon request
-
-### Use Results
-
-#### Data Ingestion
-The MoveoOne library handles:
-- Automatic data collection
-- Efficient event batching
-- Reliable data transmission
-- Offline data queuing
-
-#### Dashboard Access
-The Moveo One Dashboard provides:
+The dashboard provides:
 - Real-time analytics viewing
 - User behavior patterns
 - Interaction flow visualization
 - Custom report generation
 - Data export capabilities
+- Session replay and analysis
 
+## Support
 
-Contact us for dashboard access and detailed documentation on interpreting your analytics data.
+For any issues or support, feel free to:
+
+- Open an **issue** on our [GitHub repository](https://github.com/divstechnologydev/moveoone-flutter/issues)
+- Email us at [**info@moveo.one**](mailto:info@moveo.one)
+
+We're here to help you get the most out of Moveo One Analytics!
 
