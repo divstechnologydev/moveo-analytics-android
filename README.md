@@ -73,19 +73,13 @@ public class YourApplication extends Application {
         // Initialize with your API token
         MoveoOne.getInstance().initialize("YOUR_API_KEY");
         
-        // Optional: Identify user (use app-specific unique identifier, not PII)
-        MoveoOne.getInstance().identify("user_unique_id");
-        
         // Start tracking session (must be called before any track/tick events)
         MoveoOne.getInstance().start("your_context_name");
     }
 }
 ```
 
-**Important Privacy Note**: Never use personally identifiable information (PII) as the userId. Instead:
-- Use application-specific unique identifiers
-- Consider using hashed or encoded values
-- Maintain a separate mapping of analytics IDs to user data in your system
+
 
 ### Setup
 
