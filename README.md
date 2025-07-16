@@ -24,7 +24,7 @@ Moveo One Analytics is a user cognitive-behavioral analytics tool designed to pr
 **Current version:** 1.0.12
 
 ### Key Features
-- Real-time user interaction tracking
+- User interaction tracking
 - Semantic grouping of user actions
 - Component-level analytics
 - Non-intrusive integration
@@ -134,10 +134,14 @@ MoveoOne.getInstance().tick(
 
 #### Session Metadata Management
 
-**updateSessionMetadata()** - Replaces the entire session metadata:
+**updateSessionMetadata()** - Updates current session metadata. Session metadata should split sessions by information that influences content or creates visually different variations of the same application. Sessions split by these parameters will be analyzed separately by our UX analyzer.
 
 ```java
 Map<String, String> sessionMetadata = new HashMap<>();
+sessionMetadata.put("locale", "eng");
+sessionMetadata.put("theme", "dark");
+sessionMetadata.put("app_version", "2.1.0");
+sessionMetadata.put("device_type", "tablet");
 sessionMetadata.put("user_preference", "dark_mode");
 sessionMetadata.put("current_section", "checkout");
 sessionMetadata.put("language", "en_US");
@@ -145,12 +149,16 @@ sessionMetadata.put("language", "en_US");
 MoveoOne.getInstance().updateSessionMetadata(sessionMetadata);
 ```
 
-**updateAdditionalMetadata()** - Adds additional metadata while preserving existing:
+**updateAdditionalMetadata()** - Updates additional metadata for the session. This is used as data enrichment and enables specific queries or analysis by the defined split.
 
 ```java
 Map<String, String> additionalMetadata = new HashMap<>();
+additionalMetadata.put("user_country", "US");
+additionalMetadata.put("company", "example_company");
 additionalMetadata.put("experiment_feature_flag", "enabled");
 additionalMetadata.put("experiment_assigned", "2024-01-15T10:30:00Z");
+additionalMetadata.put("user_segment", "premium");
+additionalMetadata.put("campaign_id", "summer_2024");
 
 MoveoOne.getInstance().updateAdditionalMetadata(additionalMetadata);
 ```
@@ -508,7 +516,7 @@ To obtain an API key for Moveo One Analytics:
 Once your data is being tracked, you can access your analytics through the Moveo One Dashboard at [https://app.moveo.one/](https://app.moveo.one/)
 
 The dashboard provides:
-- Real-time analytics viewing
+- Analytics viewing
 - User behavior patterns
 - Interaction flow visualization
 - Custom report generation
