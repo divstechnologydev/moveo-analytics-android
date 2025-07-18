@@ -138,13 +138,9 @@ MoveoOne.getInstance().tick(
 
 ```java
 Map<String, String> sessionMetadata = new HashMap<>();
+sessionMetadata.put("test", "a");
 sessionMetadata.put("locale", "eng");
-sessionMetadata.put("theme", "dark");
 sessionMetadata.put("app_version", "2.1.0");
-sessionMetadata.put("device_type", "tablet");
-sessionMetadata.put("user_preference", "dark_mode");
-sessionMetadata.put("current_section", "checkout");
-sessionMetadata.put("language", "en_US");
 
 MoveoOne.getInstance().updateSessionMetadata(sessionMetadata);
 ```
@@ -155,10 +151,11 @@ MoveoOne.getInstance().updateSessionMetadata(sessionMetadata);
 Map<String, String> additionalMetadata = new HashMap<>();
 additionalMetadata.put("user_country", "US");
 additionalMetadata.put("company", "example_company");
-additionalMetadata.put("experiment_feature_flag", "enabled");
-additionalMetadata.put("experiment_assigned", "2024-01-15T10:30:00Z");
-additionalMetadata.put("user_segment", "premium");
-additionalMetadata.put("campaign_id", "summer_2024");
+additionalMetadata.put("user_role", "admin"); // or "user", "manager", "viewer"
+additionalMetadata.put("acquisition_channel", "organic"); // or "paid", "referral", "direct"
+additionalMetadata.put("device_category", "mobile"); // or "desktop", "tablet"
+additionalMetadata.put("subscription_plan", "pro"); // or "basic", "enterprise"
+additionalMetadata.put("has_purchased", "true"); // or "false"
 
 MoveoOne.getInstance().updateAdditionalMetadata(additionalMetadata);
 ```
