@@ -101,10 +101,9 @@ The library supports metadata in both `track()` and `tick()` events, plus sessio
 
 ```java
 Map<String, String> metadata = new HashMap<>();
-metadata.put("screen", "checkout");
-metadata.put("button_type", "primary");
-metadata.put("user_type", "premium");
-metadata.put("cart_total", "99.99");
+sessionMetadata.put("test", "a");
+sessionMetadata.put("locale", "eng");
+sessionMetadata.put("app_version", "2.1.0");
 
 // Using metadata with track()
 MoveoOne.getInstance().track(
@@ -220,9 +219,10 @@ MoveoOne.getInstance().tick(
 );
 
 // Track text input with metadata
-Map<String, String> inputMetadata = new HashMap<>();
-inputMetadata.put("field_type", "email");
-inputMetadata.put("validation_status", "valid");
+Map<String, String> sessionMetadata = new HashMap<>();
+sessionMetadata.put("test", "a");
+sessionMetadata.put("locale", "eng");
+sessionMetadata.put("app_version", "2.1.0");
 
 MoveoOne.getInstance().tick(
     new MoveoOneData(
@@ -231,7 +231,7 @@ MoveoOne.getInstance().tick(
         Constants.MoveoOneType.TEXT_EDIT,
         Constants.MoveoOneAction.INPUT,
         "user@example.com",
-        inputMetadata
+        sessionMetadata
     )
 );
 ```
@@ -383,10 +383,6 @@ public class MainActivity extends AppCompatActivity {
         // Track button interactions
         Button addToCartButton = findViewById(R.id.add_to_cart_button);
         addToCartButton.setOnClickListener(v -> {
-            Map<String, String> metadata = new HashMap<>();
-            metadata.put("product_id", "12345");
-            metadata.put("price", "29.99");
-            metadata.put("category", "electronics");
             
             MoveoOne.getInstance().tick(
                 new MoveoOneData(
@@ -395,19 +391,16 @@ public class MainActivity extends AppCompatActivity {
                     Constants.MoveoOneType.BUTTON,
                     Constants.MoveoOneAction.CLICK,
                     "Add to Cart",
-                    metadata
+                    null
                 )
             );
         });
-        
+
         // Track search input
         EditText searchInput = findViewById(R.id.search_input);
         searchInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
-                Map<String, String> metadata = new HashMap<>();
-                metadata.put("input_length", String.valueOf(s.length()));
-                metadata.put("has_results", s.length() > 2 ? "true" : "false");
                 
                 MoveoOne.getInstance().tick(
                     new MoveoOneData(
@@ -416,7 +409,7 @@ public class MainActivity extends AppCompatActivity {
                         Constants.MoveoOneType.SEARCH_BAR,
                         Constants.MoveoOneAction.INPUT,
                         s.toString(),
-                        metadata
+                        null
                     )
                 );
             }
@@ -441,14 +434,14 @@ public class MainActivity extends AppCompatActivity {
                             Constants.MoveoOneType.COLLECTION,
                             Constants.MoveoOneAction.SCROLL,
                             "vertical_scroll",
-                            null
-                        )
-                    );
+                        null
+                    )
+                );
                 }
             }
         });
     }
-    
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -458,7 +451,7 @@ public class MainActivity extends AppCompatActivity {
         trackComponentAppearance("product_grid", Constants.MoveoOneType.GRID, "Product Catalog");
         trackComponentAppearance("search_bar", Constants.MoveoOneType.SEARCH_BAR, "Search products");
     }
-    
+
     private void trackComponentAppearance(String id, Constants.MoveoOneType type, String value) {
         MoveoOne.getInstance().tick(
             new MoveoOneData(
@@ -477,7 +470,7 @@ public class MainActivity extends AppCompatActivity {
         // Switch to checkout context
         MoveoOne.getInstance().track(
             "checkout_flow",
-            new MoveoOneData(
+    new MoveoOneData(
                 "checkout_initiation",
                 "checkout_button",
                 Constants.MoveoOneType.BUTTON,
@@ -487,13 +480,6 @@ public class MainActivity extends AppCompatActivity {
             )
         );
         
-        // Update session metadata for checkout
-        Map<String, String> checkoutMetadata = new HashMap<>();
-        checkoutMetadata.put("flow_type", "checkout");
-        checkoutMetadata.put("cart_items_count", "3");
-        checkoutMetadata.put("total_amount", "89.97");
-        
-        MoveoOne.getInstance().updateSessionMetadata(checkoutMetadata);
     }
 }
 ```
