@@ -21,7 +21,7 @@
 
 Moveo One Analytics is a user cognitive-behavioral analytics tool designed to provide deep insights into user behavior and interaction patterns. The moveo-analytics-android SDK enables Android applications to leverage Moveo One's advanced analytics capabilities with a lightweight, non-intrusive integration.
 
-**Current version:** 1.0.12
+**Current version:** 1.0.14
 
 ### Key Features
 - User interaction tracking
@@ -54,13 +54,32 @@ Add the dependency to your app-level `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'com.github.divstechnologydev:moveo-analytics-android:v1.0.12'
+    implementation 'com.github.divstechnologydev:moveo-analytics-android:v1.0.14'
 }
 ```
 
 ### Library Initialization
 
 Initialize the library early in your application lifecycle, typically in your Application class:
+
+#### Start Method Options
+
+The `start()` method has two overloads:
+
+**Basic start (context only):**
+```java
+MoveoOne.getInstance().start("your_context_name");
+```
+
+**Start with initial session metadata:**
+```java
+Map<String, String> initialMetadata = new HashMap<>();
+initialMetadata.put("app_version", "2.1.0");
+initialMetadata.put("user_type", "premium");
+MoveoOne.getInstance().start("your_context_name", initialMetadata);
+```
+
+The initial metadata will be merged with the library version and sent with the session start event.
 
 ```java
 import one.moveo.androidlib.MoveoOne;
@@ -75,6 +94,11 @@ public class YourApplication extends Application {
         
         // Start tracking session (must be called before any track/tick events)
         MoveoOne.getInstance().start("your_context_name");
+        
+        // Or start with initial session metadata
+        Map<String, String> initialMetadata = new HashMap<>();
+        initialMetadata.put("app_version", "2.1.0");
+        MoveoOne.getInstance().start("your_context_name", initialMetadata);
     }
 }
 ```

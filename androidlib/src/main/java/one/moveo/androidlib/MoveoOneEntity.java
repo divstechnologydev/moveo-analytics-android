@@ -3,14 +3,11 @@ package one.moveo.androidlib;
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
 
 public class MoveoOneEntity {
     private String c; //context
     private String type;
-    private String userId;
     private Long t;
     private Map<String, String> prop;
     private Map<String, String> meta;
@@ -18,10 +15,9 @@ public class MoveoOneEntity {
     private Map<String, String> additionalMeta; // New field for additional metadata
 
     // Constructor with all fields including additional metadata
-    public MoveoOneEntity(String c, String type, String userId, Long t, Map<String, String> prop, Map<String, String> meta, String sId, Map<String, String> additionalMeta) {
+    public MoveoOneEntity(String c, String type, Long t, Map<String, String> prop, Map<String, String> meta, String sId, Map<String, String> additionalMeta) {
         this.c = c;
         this.type = type;
-        this.userId = userId;
         this.t = t;
         this.prop = prop;
         this.meta = meta;
@@ -30,8 +26,8 @@ public class MoveoOneEntity {
     }
 
     // Constructor without additional metadata (sets it to empty map)
-    public MoveoOneEntity(String c, String type, String userId, Long t, Map<String, String> prop, Map<String, String> meta, String sId) {
-        this(c, type, userId, t, prop, meta, sId, new HashMap<>());
+    public MoveoOneEntity(String c, String type, Long t, Map<String, String> prop, Map<String, String> meta, String sId) {
+        this(c, type, t, prop, meta, sId, new HashMap<>());
     }
 
     public String getC() {
@@ -50,13 +46,7 @@ public class MoveoOneEntity {
         this.type = type;
     }
 
-    public String getUserId() {
-        return userId;
-    }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
 
     public Long getT() {
         return t;

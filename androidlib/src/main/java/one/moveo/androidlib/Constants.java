@@ -1,10 +1,10 @@
 package one.moveo.androidlib;
 
-import lombok.Getter;
+
 
 public class Constants {
 
-    public static String libVersion="1.0.12";
+    public static String libVersion="1.0.14";
 
     public enum Environment {
         DEVELOPMENT("development"),

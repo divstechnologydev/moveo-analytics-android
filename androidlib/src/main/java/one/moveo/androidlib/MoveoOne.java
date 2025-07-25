@@ -19,8 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import lombok.Getter;
-import lombok.Setter;
+
 
 
 public class MoveoOne {
@@ -32,7 +31,6 @@ public class MoveoOne {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private String token = "";
-    private String userId = "";
 
     private boolean logging = false;
 
@@ -65,15 +63,17 @@ public class MoveoOne {
         this.flushInterval = flushInterval;
     }
 
-    public void identify(String userId) {
-        this.userId = userId;
-    }
+
 
     public boolean isCustomFlush() {
         return this.customPush;
     }
 
     public void start(String context) {
+        start(context, null);
+    }
+
+    public void start(String context, Map<String, String> metadata) {
         log("start");
         if (!this.started) {
             this.flushOrRecord(true);
@@ -81,14 +81,13 @@ public class MoveoOne {
             this.context = context;
             this.sessionId = "sid_" + UUID.randomUUID().toString();
 
-            Map<String, String> updatedMetadata = new HashMap<>();
+            Map<String, String> updatedMetadata = metadata != null ? new HashMap<>(metadata) : new HashMap<>();
             updatedMetadata.put("lib_version", Constants.libVersion);
 
             this.addEventToBuffer(
                     context,
                     START_SESSION,
                     new HashMap<>(),
-                    this.userId,
                     this.sessionId,
                     updatedMetadata
             );
@@ -161,14 +160,13 @@ public class MoveoOne {
     public void updateSessionMetadata(Map<String, String> metadata) {
         log("update session metadata");
         if (this.started) {
-            this.addEventToBuffer(
-                    this.context,
-                    UPDATE_METADATA,
-                    new HashMap<>(),
-                    this.userId,
-                    this.sessionId,
-                    metadata
-            );
+                    this.addEventToBuffer(
+                this.context,
+                UPDATE_METADATA,
+                new HashMap<>(),
+                this.sessionId,
+                metadata
+        );
             this.flushOrRecord(false);
         }
     }
@@ -187,7 +185,6 @@ public class MoveoOne {
                     this.context,
                     UPDATE_METADATA,
                     new HashMap<>(), // empty properties
-                    this.userId,
                     this.sessionId,
                     new HashMap<>(), // empty metadata
                     additionalMetadata // additional metadata goes here
@@ -214,7 +211,6 @@ public class MoveoOne {
                 context,
                 TRACK,
                 properties,
-                this.userId,
                 this.sessionId,
                 metadata
         );
@@ -229,7 +225,6 @@ public class MoveoOne {
                 this.context,
                 TRACK,
                 properties,
-                this.userId,
                 this.sessionId,
                 metadata
         );
@@ -241,7 +236,6 @@ public class MoveoOne {
             String context,
             Constants.MoveoOneEventType type,
             Map<String, String> prop,
-            String userId,
             String sessionId,
             Map<String, String> meta,
             Map<String, String> additionalMeta
@@ -250,7 +244,6 @@ public class MoveoOne {
         this.buffer.add(new MoveoOneEntity(
                 context,
                 type.getValue(),
-                userId,
                 now,
                 prop,
                 meta,
@@ -264,11 +257,10 @@ public class MoveoOne {
             String context,
             Constants.MoveoOneEventType type,
             Map<String, String> prop,
-            String userId,
             String sessionId,
             Map<String, String> meta
     ) {
-        addEventToBuffer(context, type, prop, userId, sessionId, meta, new HashMap<>());
+        addEventToBuffer(context, type, prop, sessionId, meta, new HashMap<>());
     }
 
     private void flush() {
@@ -281,7 +273,6 @@ public class MoveoOne {
                 dataToSend.add(new MoveoOneEntity(
                         entity.getC(),
                         entity.getType(),
-                        entity.getUserId(),
                         entity.getT(),
                         entity.getProp(),
                         entity.getMeta(),

@@ -67,7 +67,6 @@ public class Util {
                     JSONObject jsonEntity = new JSONObject();
                     jsonEntity.put("c", entity.getC());
                     jsonEntity.put("type", entity.getType());
-                    jsonEntity.put("userId", entity.getUserId());
                     jsonEntity.put("t", entity.getT());
                     if (entity.getProp() != null) {
                         jsonEntity.put("prop", new JSONObject(entity.getProp()));

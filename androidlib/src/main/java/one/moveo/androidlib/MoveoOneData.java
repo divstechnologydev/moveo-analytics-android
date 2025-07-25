@@ -3,8 +3,7 @@ package one.moveo.androidlib;
 
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+
 
 public class MoveoOneData {
     private String semanticGroup;
