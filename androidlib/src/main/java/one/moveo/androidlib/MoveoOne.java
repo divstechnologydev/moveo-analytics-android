@@ -82,7 +82,7 @@ public class MoveoOne {
             this.sessionId = "sid_" + UUID.randomUUID().toString();
 
             Map<String, String> updatedMetadata = metadata != null ? new HashMap<>(metadata) : new HashMap<>();
-            updatedMetadata.put("lib_version", Constants.libVersion);
+            updatedMetadata.put("libVersion", Constants.libVersion);
 
             this.addEventToBuffer(
                     context,
