@@ -329,4 +329,66 @@ public class MoveoOne {
             Log.i(TAG, message);
         }
     }
+
+    /**
+     * Gets prediction from a model using current session data.
+     * This method is non-blocking and returns a CompletableFuture for async processing.
+     * 
+     * @param modelId The ID of the model to use for prediction
+     * @return CompletableFuture<PredictionResponse> containing the prediction result
+     */
+    public CompletableFuture<PredictionResponse> predict(String modelId) {
+        // Validate inputs first
+        if (modelId == null || modelId.trim().isEmpty()) {
+            PredictionResponse errorResponse = new PredictionResponse(false, "invalid_model_id", 
+                "Model ID is required and must be a non-empty string");
+            return CompletableFuture.completedFuture(errorResponse);
+        }
+
+        if (token == null || token.trim().isEmpty()) {
+            PredictionResponse errorResponse = new PredictionResponse(false, "not_initialized", 
+                "MoveoOne must be initialized before using predict method. Call initialize() first.");
+            return CompletableFuture.completedFuture(errorResponse);
+        }
+
+        if (!started) {
+            PredictionResponse errorResponse = new PredictionResponse(false, "no_session", 
+                "No active session found. Please ensure MoveoOne is properly started.");
+            return CompletableFuture.completedFuture(errorResponse);
+        }
+
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            PredictionResponse errorResponse = new PredictionResponse(false, "no_session", 
+                "No active session found. Please ensure MoveoOne is properly started.");
+            return CompletableFuture.completedFuture(errorResponse);
+        }
+
+        // Perform prediction request asynchronously
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return CompletableFuture.supplyAsync(() -> {
+                try {
+                    // Use current buffer events for prediction
+                    List<MoveoOneEntity> currentEvents = new ArrayList<>(this.buffer);
+                    return Util.performPredictionRequest(modelId.trim(), sessionId, currentEvents, token);
+                } catch (IOException e) {
+                    log("Prediction request failed: " + e.getMessage());
+                    return new PredictionResponse(false, "error", "Unexpected error during prediction: " + e.getMessage());
+                }
+            });
+        } else {
+            // Fallback for older Android versions
+            CompletableFuture<PredictionResponse> future = new CompletableFuture<>();
+            executor.execute(() -> {
+                try {
+                    List<MoveoOneEntity> currentEvents = new ArrayList<>(this.buffer);
+                    PredictionResponse response = Util.performPredictionRequest(modelId.trim(), sessionId, currentEvents, token);
+                    future.complete(response);
+                } catch (IOException e) {
+                    log("Prediction request failed: " + e.getMessage());
+                    future.complete(new PredictionResponse(false, "error", "Unexpected error during prediction: " + e.getMessage()));
+                }
+            });
+            return future;
+        }
+    }
 }

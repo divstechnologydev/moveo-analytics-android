@@ -11,6 +11,7 @@
   - [Setup](#setup)
   - [Metadata and Additional Metadata](#metadata-and-additional-metadata)
   - [Track Data](#track-data)
+- [Prediction API](#prediction-api)
 - [Event Types and Actions](#event-types-and-actions)
 - [Comprehensive Example Usage](#comprehensive-example-usage)
 - [Obtain API Key](#obtain-api-key)
@@ -259,6 +260,98 @@ MoveoOne.getInstance().tick(
     )
 );
 ```
+
+## Prediction API
+
+The MoveoOne library includes a prediction method that allows you to get real-time predictions from your trained models.
+
+### Basic Usage
+
+```java
+// Initialize MoveoOne first
+MoveoOne.getInstance().initialize("YOUR_API_KEY");
+MoveoOne.getInstance().start("your_context_name");
+
+// Get prediction from a model (returns CompletableFuture)
+MoveoOne.getInstance().predict("your-model-id")
+    .thenAccept(result -> {
+        if (result.isSuccess()) {
+            Double probability = result.getPredictionProbability();
+            Boolean binaryResult = result.getPredictionBinary();
+            Log.d("Prediction", "Probability: " + probability);
+            Log.d("Prediction", "Binary result: " + binaryResult);
+        } else {
+            Log.e("Prediction", "Error: " + result.getMessage());
+        }
+    })
+    .exceptionally(throwable -> {
+        Log.e("Prediction", "Unexpected error: " + throwable.getMessage());
+        return null;
+    });
+```
+
+### Using with Async/Await (Android 8.0+)
+
+```java
+// Using the newer CompletableFuture syntax
+try {
+    PredictionResponse result = MoveoOne.getInstance().predict("your-model-id").get();
+    
+    if (result.isSuccess()) {
+        Double probability = result.getPredictionProbability();
+        Boolean binaryResult = result.getPredictionBinary();
+        
+        // Use the prediction results
+        Log.d("Prediction", "Success! Probability: " + probability + ", Binary: " + binaryResult);
+    } else {
+        Log.e("Prediction", "Error: " + result.getMessage() + " (Status: " + result.getStatus() + ")");
+    }
+} catch (Exception e) {
+    Log.e("Prediction", "Exception: " + e.getMessage());
+}
+```
+
+### Response Examples
+
+#### Success Response
+```java
+PredictionResponse response = // result from predict()
+response.isSuccess()           // true
+response.getStatus()          // "success"
+response.getMessage()        // "Prediction completed successfully"
+response.getPredictionProbability()  // 0.85 (Double)
+response.getPredictionBinary()       // true (Boolean)
+```
+
+#### Error Responses
+
+All error responses follow the same pattern:
+- `response.isSuccess()` → `false`
+- `response.getStatus()` → Error type
+- `response.getMessage()` → Human-readable error message
+- `response.getPredictionProbability()` → `null`
+- `response.getPredictionBinary()` → `null`
+
+**Common Error Statuses:**
+- `"not_initialized"` - MoveoOne not initialized or no token provided
+- `"no_session"` - No active session found (call `start()` first)
+- `"invalid_model_id"` - Empty or invalid model ID
+- `"pending"` - Model is loading/validating (retry after delay)
+- `"not_found"` - Model not found or not accessible
+- `"server_error"` - Internal server error processing request
+- `"network_error"` - Network connectivity issues
+- `"timeout"` - Request timed out after 150ms
+
+
+### Important Notes
+
+- The `predict()` method is **non-blocking** and won't affect your app's performance
+- All requests have a **150-millisecond timeout** to prevent hanging
+- The method automatically uses the **current session ID** and sends all **buffered events** to the prediction service
+- The method returns a `CompletableFuture<PredictionResponse>`, perfect for asynchronous programming
+- Always check `isSuccess() == true` for complete predictions 
+- **`predictionProbability` and `predictionBinary` are optional** - they will be `null` for error responses and only contain values for successful predictions
+- **Active session required** - Make sure to call `start()` before using predict method, otherwise you'll get `"no_session"` error
 
 ## Event Types and Actions
 
