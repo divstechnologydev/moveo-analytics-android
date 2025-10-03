@@ -7,7 +7,7 @@ public class Constants {
     public static String libVersion="1.0.14";
     
     // Dolphin service URL for predictions
-    public static final String DOLPHIN_BASE_URL = "https://dolphin-dev-978019819001.europe-west1.run.app";
+    public static final String DOLPHIN_BASE_URL = "https://dolphin-prod-229920351162.europe-west1.run.app";
 
     public enum Environment {
         DEVELOPMENT("development"),
