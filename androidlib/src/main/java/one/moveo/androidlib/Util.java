@@ -42,21 +42,25 @@ public class Util {
     private static JSONArray convertEntitiesToJsonArray(List<MoveoOneEntity> entities) {
         JSONArray jsonArray = new JSONArray();
         for (MoveoOneEntity entity : entities) {
-            JSONObject jsonEntity = new JSONObject();
-            jsonEntity.put("c", entity.getC());
-            jsonEntity.put("type", entity.getType());
-            jsonEntity.put("t", entity.getT());
-            if (entity.getProp() != null) {
-                jsonEntity.put("prop", new JSONObject(entity.getProp()));
+            try {
+                JSONObject jsonEntity = new JSONObject();
+                jsonEntity.put("c", entity.getC());
+                jsonEntity.put("type", entity.getType());
+                jsonEntity.put("t", entity.getT());
+                if (entity.getProp() != null) {
+                    jsonEntity.put("prop", new JSONObject(entity.getProp()));
+                }
+                if (entity.getMeta() != null) {
+                    jsonEntity.put("meta", new JSONObject(entity.getMeta()));
+                }
+                if (entity.getAdditionalMeta() != null){
+                    jsonEntity.put("additionalMeta", new JSONObject(entity.getAdditionalMeta()));
+                }
+                jsonEntity.put("sId", entity.getSId());
+                jsonArray.put(jsonEntity);
+            } catch (org.json.JSONException e) {
+                Log.e(TAG, "Failed to convert entity to JSON", e);
             }
-            if (entity.getMeta() != null) {
-                jsonEntity.put("meta", new JSONObject(entity.getMeta()));
-            }
-            if (entity.getAdditionalMeta() != null){
-                jsonEntity.put("additionalMeta", new JSONObject(entity.getAdditionalMeta()));
-            }
-            jsonEntity.put("sId", entity.getSId());
-            jsonArray.put(jsonEntity);
         }
         return jsonArray;
     }
@@ -173,8 +177,13 @@ public class Util {
             // Prepare the request payload with events and session ID
             // Reuse the same conversion method as analytics API
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("events", convertEntitiesToJsonArray(events));
-            jsonObject.put("session_id", sessionId);
+            try {
+                jsonObject.put("events", convertEntitiesToJsonArray(events));
+                jsonObject.put("session_id", sessionId);
+            } catch (org.json.JSONException e) {
+                Log.e(TAG, "Failed to create prediction request JSON", e);
+                return new PredictionResponse(false, "error", "Failed to create request JSON");
+            }
             
             // Convert JSON to bytes
             String jsonBody = jsonObject.toString();

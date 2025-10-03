@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,12 +21,14 @@ import androidx.core.view.WindowInsetsCompat;
 import one.moveo.androidlib.Constants;
 import one.moveo.androidlib.MoveoOne;
 import one.moveo.androidlib.MoveoOneData;
+import one.moveo.androidlib.PredictionResponse;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private TextView text1;
     private Button button1;
     private Button button2;
+    private Button predictionButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         text1 = findViewById(R.id.text_1);
         button1 = findViewById(R.id.button_1);
         button2 = findViewById(R.id.button_2);
+        predictionButton = findViewById(R.id.prediction_button);
 
         // Set up click listeners
         button1.setOnClickListener(v -> {
@@ -65,6 +69,55 @@ public class MainActivity extends AppCompatActivity {
                     )
             );
             Log.d(TAG, "Button 2 clicked");
+        });
+
+        // Prediction button example
+        predictionButton.setOnClickListener(v -> {
+            // Track the button click
+            MoveoOne.getInstance().tick(
+                    new MoveoOneData(
+                            "main_activity_semantic",
+                            "prediction_button",
+                            BUTTON,
+                            CLICK,
+                            predictionButton.getText().toString(),
+                            null
+                    )
+            );
+            
+            // Make prediction request (example model ID)
+            String modelId = "example_model_123";
+            Log.d(TAG, "Making prediction request for model: " + modelId);
+            
+            MoveoOne.getInstance().predict(modelId)
+                .thenAccept(result -> {
+                    // Handle prediction result
+                    runOnUiThread(() -> {
+                        if (result.isSuccess()) {
+                            Double probability = result.getPredictionProbability();
+                            Boolean binaryResult = result.getPredictionBinary();
+                            
+                            String message = "Prediction Success!\n" +
+                                           "Probability: " + probability + "\n" +
+                                           "Binary Result: " + binaryResult;
+                            
+                            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                            Log.d(TAG, "Prediction successful - Probability: " + probability + ", Binary: " + binaryResult);
+                        } else {
+                            String message = "Prediction Error: " + result.getMessage();
+                            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                            Log.e(TAG, "Prediction failed - Status: " + result.getStatus() + ", Message: " + result.getMessage());
+                        }
+                    });
+                })
+                .exceptionally(throwable -> {
+                    runOnUiThread(() -> {
+                        String message = "Prediction Exception: " + throwable.getMessage();
+                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Prediction exception: " + throwable.getMessage(), throwable);
+                    });
+                    return null;
+                });
         });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -119,6 +172,20 @@ public class MainActivity extends AppCompatActivity {
                         BUTTON,
                         APPEAR,
                         button2text,
+                        null
+                )
+        );
+
+        String predictionButtontext = predictionButton != null ? predictionButton.getText().toString() : "null";
+        Log.d(TAG, "PredictionButton text: " + predictionButtontext);
+
+        MoveoOne.getInstance().tick(
+                new MoveoOneData(
+                        "main_activity_semantic",
+                        "prediction_button",
+                        BUTTON,
+                        APPEAR,
+                        predictionButtontext,
                         null
                 )
         );

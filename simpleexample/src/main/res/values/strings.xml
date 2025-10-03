@@ -3,4 +3,5 @@
     <string name="text_1">Welcome to Moveo One simple app</string>
     <string name="button_1">Test click first button</string>
     <string name="button_2">Test click second button</string>
+    <string name="predict_button">Get Prediction (Demo)</string>
 </resources>
