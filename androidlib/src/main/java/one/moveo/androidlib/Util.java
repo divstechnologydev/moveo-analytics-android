@@ -323,6 +323,101 @@ public class Util {
         }
     }
 
+    /**
+     * Sends latency data to the prediction-latency endpoint.
+     * This method is called asynchronously after prediction response is returned to user.
+     * 
+     * @param latencyRequest The latency request containing execution metrics
+     * @param token The authorization token
+     * @throws IOException if request fails
+     */
+    public static void sendLatencyData(LatencyRequest latencyRequest, String token) throws IOException {
+        Log.d(TAG, "Sending latency data for model: " + latencyRequest.getModelId() + 
+              " with execution time: " + latencyRequest.getTotalExecutionTimeMs() + "ms");
+        
+        HttpURLConnection connection = null;
+        OutputStream out = null;
+        BufferedOutputStream bout = null;
+        InputStream in = null;
+
+        try {
+            // Construct the prediction-latency endpoint URL
+            String endpointUrl = Constants.DOLPHIN_BASE_URL + "/api/prediction-latency";
+            
+            // Setup connection
+            URL url = new URL(endpointUrl);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(CONNECTION_TIMEOUT);
+            connection.setReadTimeout(READ_TIMEOUT);
+
+            // Setup request method and headers
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Authorization", token);
+            connection.setDoOutput(true);
+            
+            // Prepare the request payload
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("model_id", latencyRequest.getModelId());
+                jsonObject.put("session_id", latencyRequest.getSessionId());
+                jsonObject.put("client", latencyRequest.getClient());
+                jsonObject.put("total_execution_time_ms", latencyRequest.getTotalExecutionTimeMs());
+                
+                // Convert latency data map to JSON object
+                JSONObject latencyDataJson = new JSONObject();
+                if (latencyRequest.getLatencyData() != null) {
+                    for (Map.Entry<String, Object> entry : latencyRequest.getLatencyData().entrySet()) {
+                        latencyDataJson.put(entry.getKey(), entry.getValue());
+                    }
+                }
+                jsonObject.put("latency_data", latencyDataJson);
+                
+            } catch (org.json.JSONException e) {
+                Log.e(TAG, "Failed to create latency request JSON", e);
+                return;
+            }
+            
+            // Convert JSON to bytes
+            String jsonBody = jsonObject.toString();
+            Log.d(TAG, "Latency request body: " + jsonBody);
+            byte[] postData = jsonBody.getBytes(StandardCharsets.UTF_8);
+            
+            // Write JSON to connection
+            connection.setFixedLengthStreamingMode(postData.length);
+            out = connection.getOutputStream();
+            bout = new BufferedOutputStream(out);
+            bout.write(postData);
+            bout.flush();
+
+            // Get response
+            int responseCode = connection.getResponseCode();
+            
+            if (responseCode >= 200 && responseCode < 300) {
+                in = connection.getInputStream();
+                byte[] responseData = readStream(in);
+                String responseBody = new String(responseData, StandardCharsets.UTF_8);
+                Log.d(TAG, "Latency data sent successfully: " + responseBody);
+            } else {
+                // Read error response
+                InputStream errorStream = connection.getErrorStream();
+                String errorResponse = errorStream != null ? 
+                    new String(readStream(errorStream), StandardCharsets.UTF_8) : "No error details";
+                Log.e(TAG, "Failed to send latency data. Server returned code " + responseCode + " with error: " + errorResponse);
+            }
+
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to send latency data", e);
+            throw e;
+        } finally {
+            // Cleanup
+            try { if (bout != null) bout.close(); } catch (IOException ignored) {}
+            try { if (out != null) out.close(); } catch (IOException ignored) {}
+            try { if (in != null) in.close(); } catch (IOException ignored) {}
+            if (connection != null) connection.disconnect();
+        }
+    }
+
     private static byte[] readStream(InputStream inputStream) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int nRead;

@@ -41,6 +41,7 @@ public class MoveoOne {
     private String context = "";
     private String sessionId = "";
     private boolean customPush = false;
+    private boolean calculateLatency = true;
 
     private MoveoOne() {
 
@@ -61,6 +62,10 @@ public class MoveoOne {
 
     public void setFlushInterval(int flushInterval) {
         this.flushInterval = flushInterval;
+    }
+
+    public void calculateLatency(boolean calculateLatency) {
+        this.calculateLatency = calculateLatency;
     }
 
 
@@ -333,6 +338,7 @@ public class MoveoOne {
     /**
      * Gets prediction from a model using current session data.
      * This method is non-blocking and returns a CompletableFuture for async processing.
+     * If latency calculation is enabled, it will track execution time and send latency data asynchronously.
      * 
      * @param modelId The ID of the model to use for prediction
      * @return CompletableFuture<PredictionResponse> containing the prediction result
@@ -363,16 +369,34 @@ public class MoveoOne {
             return CompletableFuture.completedFuture(errorResponse);
         }
 
+        // Record start time for latency calculation
+        long startTime = System.currentTimeMillis();
+        String trimmedModelId = modelId.trim();
+
         // Perform prediction request asynchronously
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             return CompletableFuture.supplyAsync(() -> {
                 try {
                     // Use current buffer events for prediction
                     List<MoveoOneEntity> currentEvents = new ArrayList<>(this.buffer);
-                    return Util.performPredictionRequest(modelId.trim(), sessionId, currentEvents, token);
+                    PredictionResponse response = Util.performPredictionRequest(trimmedModelId, sessionId, currentEvents, token);
+                    
+                    // Send latency data asynchronously if enabled
+                    if (calculateLatency) {
+                        sendLatencyDataAsync(trimmedModelId, startTime, response);
+                    }
+                    
+                    return response;
                 } catch (IOException e) {
                     log("Prediction request failed: " + e.getMessage());
-                    return new PredictionResponse(false, "error", "Unexpected error during prediction: " + e.getMessage());
+                    PredictionResponse errorResponse = new PredictionResponse(false, "error", "Unexpected error during prediction: " + e.getMessage());
+                    
+                    // Send latency data for failed requests too
+                    if (calculateLatency) {
+                        sendLatencyDataAsync(trimmedModelId, startTime, errorResponse);
+                    }
+                    
+                    return errorResponse;
                 }
             });
         } else {
@@ -381,14 +405,85 @@ public class MoveoOne {
             executor.execute(() -> {
                 try {
                     List<MoveoOneEntity> currentEvents = new ArrayList<>(this.buffer);
-                    PredictionResponse response = Util.performPredictionRequest(modelId.trim(), sessionId, currentEvents, token);
+                    PredictionResponse response = Util.performPredictionRequest(trimmedModelId, sessionId, currentEvents, token);
+                    
+                    // Send latency data asynchronously if enabled
+                    if (calculateLatency) {
+                        sendLatencyDataAsync(trimmedModelId, startTime, response);
+                    }
+                    
                     future.complete(response);
                 } catch (IOException e) {
                     log("Prediction request failed: " + e.getMessage());
-                    future.complete(new PredictionResponse(false, "error", "Unexpected error during prediction: " + e.getMessage()));
+                    PredictionResponse errorResponse = new PredictionResponse(false, "error", "Unexpected error during prediction: " + e.getMessage());
+                    
+                    // Send latency data for failed requests too
+                    if (calculateLatency) {
+                        sendLatencyDataAsync(trimmedModelId, startTime, errorResponse);
+                    }
+                    
+                    future.complete(errorResponse);
                 }
             });
             return future;
+        }
+    }
+
+    /**
+     * Sends latency data asynchronously without blocking the main prediction response.
+     * This method runs in a separate thread to ensure it doesn't affect client performance.
+     * 
+     * @param modelId The model ID used for prediction
+     * @param startTime The timestamp when prediction request started
+     * @param response The prediction response (success or failure)
+     */
+    private void sendLatencyDataAsync(String modelId, long startTime, PredictionResponse response) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    long endTime = System.currentTimeMillis();
+                    int totalExecutionTimeMs = (int) (endTime - startTime);
+                    
+                    // Create latency request with empty latency data for now
+                    Map<String, Object> latencyData = new HashMap<>();
+                    
+                    LatencyRequest latencyRequest = new LatencyRequest(
+                        modelId,
+                        sessionId,
+                        "android", 
+                        totalExecutionTimeMs,
+                        latencyData
+                    );
+                    
+                    Util.sendLatencyData(latencyRequest, token);
+                    log("Latency data sent for model: " + modelId + " with execution time: " + totalExecutionTimeMs + "ms");
+                } catch (IOException e) {
+                    log("Failed to send latency data: " + e.getMessage());
+                }
+            });
+        } else {
+            executor.execute(() -> {
+                try {
+                    long endTime = System.currentTimeMillis();
+                    int totalExecutionTimeMs = (int) (endTime - startTime);
+                    
+                    // Create latency request with empty latency data for now
+                    Map<String, Object> latencyData = new HashMap<>();
+                    
+                    LatencyRequest latencyRequest = new LatencyRequest(
+                        modelId,
+                        sessionId,
+                        "android", 
+                        totalExecutionTimeMs,
+                        latencyData
+                    );
+                    
+                    Util.sendLatencyData(latencyRequest, token);
+                    log("Latency data sent for model: " + modelId + " with execution time: " + totalExecutionTimeMs + "ms");
+                } catch (IOException e) {
+                    log("Failed to send latency data: " + e.getMessage());
+                }
+            });
         }
     }
 }
