@@ -23,7 +23,7 @@ public class Util {
     private static final int CONNECTION_TIMEOUT = 2000;
     private static final int READ_TIMEOUT = 30000;
     private static final int MAX_RETRIES = 3;
-    private static final int PREDICTION_TIMEOUT = 150;
+    private static final int PREDICTION_TIMEOUT = 400;
 
     public static boolean isOnline(Context context) {
         try {

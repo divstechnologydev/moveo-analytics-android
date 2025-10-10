@@ -340,18 +340,39 @@ All error responses follow the same pattern:
 - `"not_found"` - Model not found or not accessible
 - `"server_error"` - Internal server error processing request
 - `"network_error"` - Network connectivity issues
-- `"timeout"` - Request timed out after 150ms
+- `"timeout"` - Request timed out after 400ms
 
 
 ### Important Notes
 
 - The `predict()` method is **non-blocking** and won't affect your app's performance
-- All requests have a **150-millisecond timeout** to prevent hanging
+- All requests have a **400-millisecond timeout** to prevent hanging
 - The method automatically uses the **current session ID** and sends all **buffered events** to the prediction service
 - The method returns a `CompletableFuture<PredictionResponse>`, perfect for asynchronous programming
 - Always check `isSuccess() == true` for complete predictions 
 - **`predictionProbability` and `predictionBinary` are optional** - they will be `null` for error responses and only contain values for successful predictions
 - **Active session required** - Make sure to call `start()` before using predict method, otherwise you'll get `"no_session"` error
+
+### Latency Tracking
+
+The library automatically tracks prediction request latency and sends this data to the Dolphin service for monitoring and analytics. This feature is enabled by default but can be controlled programmatically.
+
+#### Enable/Disable Latency Tracking
+
+```java
+// Disable latency tracking (enabled by default)
+MoveoOne.getInstance().calculateLatency(false);
+
+// Re-enable latency tracking
+MoveoOne.getInstance().calculateLatency(true);
+```
+
+#### How It Works
+
+- When latency tracking is enabled, the library automatically measures the time from when a prediction request is sent until the response is received
+- This latency data is sent asynchronously to the `/api/prediction-latency` endpoint after the prediction response is returned to the user
+- The latency tracking does not affect the prediction API response time or client performance
+
 
 ## Event Types and Actions
 
