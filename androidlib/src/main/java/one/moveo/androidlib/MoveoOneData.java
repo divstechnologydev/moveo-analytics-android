@@ -22,6 +22,11 @@ public class MoveoOneData {
         this.metadata = metadata;
     }
 
+    // Constructor overload with optional metadata (defaults to null)
+    public MoveoOneData(String semanticGroup, String id, Constants.MoveoOneType type, Constants.MoveoOneAction action, Object value) {
+        this(semanticGroup, id, type, action, value, null);
+    }
+
     public String getSemanticGroup() {
         return semanticGroup;
     }

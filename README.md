@@ -138,8 +138,7 @@ MoveoOne.getInstance().track(
         "checkout_button",
         Constants.MoveoOneType.BUTTON,
         Constants.MoveoOneAction.CLICK,
-        "proceed_to_payment",
-        metadata
+        "proceed_to_payment"
     )
 );
 
@@ -150,9 +149,7 @@ MoveoOne.getInstance().tick(
         "product_card",
         Constants.MoveoOneType.CARD,
         Constants.MoveoOneAction.APPEAR,
-        "product_view",
-        metadata
-    )
+        "product_view"    )
 );
 ```
 
@@ -227,7 +224,6 @@ MoveoOne.getInstance().track(
         Constants.MoveoOneType.BUTTON,
         Constants.MoveoOneAction.CLICK,
         "Submit Order",
-        null
     )
 );
 
@@ -238,9 +234,8 @@ MoveoOne.getInstance().tick(
         "product_list",
         Constants.MoveoOneType.COLLECTION,
         Constants.MoveoOneAction.APPEAR,
-        "Product Catalog",
-        null
-    )
+        "Product Catalog"
+            )
 );
 
 // Track text input with metadata
@@ -255,8 +250,7 @@ MoveoOne.getInstance().tick(
         "email_field",
         Constants.MoveoOneType.TEXT_EDIT,
         Constants.MoveoOneAction.INPUT,
-        "user@example.com",
-        sessionMetadata
+        "user@example.com"
     )
 );
 ```
@@ -528,8 +522,7 @@ public class MainActivity extends AppCompatActivity {
                     "add_to_cart_button",
                     Constants.MoveoOneType.BUTTON,
                     Constants.MoveoOneAction.CLICK,
-                    "Add to Cart",
-                    null
+                    "Add to Cart"
                 )
             );
         });
@@ -546,8 +539,7 @@ public class MainActivity extends AppCompatActivity {
                         "search_input",
                         Constants.MoveoOneType.SEARCH_BAR,
                         Constants.MoveoOneAction.INPUT,
-                        s.toString(),
-                        null
+                        s.toString()
                     )
                 );
             }
@@ -571,8 +563,7 @@ public class MainActivity extends AppCompatActivity {
                             "product_list",
                             Constants.MoveoOneType.COLLECTION,
                             Constants.MoveoOneAction.SCROLL,
-                            "vertical_scroll",
-                        null
+                            "vertical_scroll"
                     )
                 );
                 }
@@ -597,8 +588,7 @@ public class MainActivity extends AppCompatActivity {
                 id,
                 type,
                 Constants.MoveoOneAction.APPEAR,
-                value,
-                null
+                value
             )
         );
     }
@@ -613,8 +603,7 @@ public class MainActivity extends AppCompatActivity {
                 "checkout_button",
                 Constants.MoveoOneType.BUTTON,
                 Constants.MoveoOneAction.CLICK,
-                "Proceed to Checkout",
-                null
+                "Proceed to Checkout"
             )
         );
         
