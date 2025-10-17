@@ -332,6 +332,9 @@ All error responses follow the same pattern:
 - `"invalid_model_id"` - Empty or invalid model ID
 - `"pending"` - Model is loading/validating (retry after delay)
 - `"not_found"` - Model not found or not accessible
+- `"target_already_reached"` - Completion target already reached - prediction not applicable
+- `"invalid_data"` - Invalid prediction data (generic 422 error)
+- `"conflict"` - Conditional event not found
 - `"server_error"` - Internal server error processing request
 - `"network_error"` - Network connectivity issues
 - `"timeout"` - Request timed out after 400ms

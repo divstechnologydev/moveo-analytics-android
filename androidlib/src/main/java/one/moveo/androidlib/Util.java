@@ -253,6 +253,13 @@ public class Util {
                     errorResponse = "Invalid prediction data";
                 }
                 
+                // Check if this is a TargetAlreadyReachedError
+                if (errorResponse.contains("TargetAlreadyReachedError") || 
+                    errorResponse.contains("Completion target already reached")) {
+                    return new PredictionResponse(false, "target_already_reached", 
+                        "Completion target already reached - prediction not applicable");
+                }
+                
                 return new PredictionResponse(false, "invalid_data", 
                     errorResponse.contains("detail") ? parseMessage(errorResponse) : "Invalid prediction data");
             }
