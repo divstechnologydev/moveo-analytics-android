@@ -11,6 +11,7 @@
   - [Setup](#setup)
   - [Metadata and Additional Metadata](#metadata-and-additional-metadata)
   - [Track Data](#track-data)
+- [Prediction API](#prediction-api)
 - [Event Types and Actions](#event-types-and-actions)
 - [Comprehensive Example Usage](#comprehensive-example-usage)
 - [Obtain API Key](#obtain-api-key)
@@ -21,7 +22,7 @@
 
 Moveo One Analytics is a user cognitive-behavioral analytics tool designed to provide deep insights into user behavior and interaction patterns. The moveo-analytics-android SDK enables Android applications to leverage Moveo One's advanced analytics capabilities with a lightweight, non-intrusive integration.
 
-**Current version:** 1.0.14
+**Current version:** 1.0.16
 
 ### Key Features
 - User interaction tracking
@@ -54,7 +55,7 @@ Add the dependency to your app-level `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'com.github.divstechnologydev:moveo-analytics-android:v1.0.14'
+    implementation 'com.github.divstechnologydev:moveo-analytics-android:v1.0.16'
 }
 ```
 
@@ -137,8 +138,7 @@ MoveoOne.getInstance().track(
         "checkout_button",
         Constants.MoveoOneType.BUTTON,
         Constants.MoveoOneAction.CLICK,
-        "proceed_to_payment",
-        metadata
+        "proceed_to_payment"
     )
 );
 
@@ -149,9 +149,7 @@ MoveoOne.getInstance().tick(
         "product_card",
         Constants.MoveoOneType.CARD,
         Constants.MoveoOneAction.APPEAR,
-        "product_view",
-        metadata
-    )
+        "product_view"    )
 );
 ```
 
@@ -226,7 +224,6 @@ MoveoOne.getInstance().track(
         Constants.MoveoOneType.BUTTON,
         Constants.MoveoOneAction.CLICK,
         "Submit Order",
-        null
     )
 );
 
@@ -237,9 +234,8 @@ MoveoOne.getInstance().tick(
         "product_list",
         Constants.MoveoOneType.COLLECTION,
         Constants.MoveoOneAction.APPEAR,
-        "Product Catalog",
-        null
-    )
+        "Product Catalog"
+            )
 );
 
 // Track text input with metadata
@@ -254,11 +250,126 @@ MoveoOne.getInstance().tick(
         "email_field",
         Constants.MoveoOneType.TEXT_EDIT,
         Constants.MoveoOneAction.INPUT,
-        "user@example.com",
-        sessionMetadata
+        "user@example.com"
     )
 );
 ```
+
+## Prediction API
+
+The MoveoOne library includes a prediction method that allows you to get real-time predictions from your trained models.
+
+### Basic Usage
+
+```java
+// Initialize MoveoOne first
+MoveoOne.getInstance().initialize("YOUR_API_KEY");
+MoveoOne.getInstance().start("your_context_name");
+
+// Get prediction from a model (returns CompletableFuture)
+MoveoOne.getInstance().predict("your-model-id")
+    .thenAccept(result -> {
+        if (result.isSuccess()) {
+            Double probability = result.getPredictionProbability();
+            Boolean binaryResult = result.getPredictionBinary();
+            Log.d("Prediction", "Probability: " + probability);
+            Log.d("Prediction", "Binary result: " + binaryResult);
+        } else {
+            Log.e("Prediction", "Error: " + result.getMessage());
+        }
+    })
+    .exceptionally(throwable -> {
+        Log.e("Prediction", "Unexpected error: " + throwable.getMessage());
+        return null;
+    });
+```
+
+### Using with Async/Await (Android 8.0+)
+
+```java
+// Using the newer CompletableFuture syntax
+try {
+    PredictionResponse result = MoveoOne.getInstance().predict("your-model-id").get();
+    
+    if (result.isSuccess()) {
+        Double probability = result.getPredictionProbability();
+        Boolean binaryResult = result.getPredictionBinary();
+        
+        // Use the prediction results
+        Log.d("Prediction", "Success! Probability: " + probability + ", Binary: " + binaryResult);
+    } else {
+        Log.e("Prediction", "Error: " + result.getMessage() + " (Status: " + result.getStatus() + ")");
+    }
+} catch (Exception e) {
+    Log.e("Prediction", "Exception: " + e.getMessage());
+}
+```
+
+### Response Examples
+
+#### Success Response
+```java
+PredictionResponse response = // result from predict()
+response.isSuccess()           // true
+response.getStatus()          // "success"
+response.getMessage()        // "Prediction completed successfully"
+response.getPredictionProbability()  // 0.85 (Double)
+response.getPredictionBinary()       // true (Boolean)
+```
+
+#### Error Responses
+
+All error responses follow the same pattern:
+- `response.isSuccess()` → `false`
+- `response.getStatus()` → Error type
+- `response.getMessage()` → Human-readable error message
+- `response.getPredictionProbability()` → `null`
+- `response.getPredictionBinary()` → `null`
+
+**Common Error Statuses:**
+- `"not_initialized"` - MoveoOne not initialized or no token provided
+- `"no_session"` - No active session found (call `start()` first)
+- `"invalid_model_id"` - Empty or invalid model ID
+- `"pending"` - Model is loading/validating (retry after delay)
+- `"not_found"` - Model not found or not accessible
+- `"target_already_reached"` - Completion target already reached - prediction not applicable
+- `"invalid_data"` - Invalid prediction data (generic 422 error)
+- `"conflict"` - Conditional event not found
+- `"server_error"` - Internal server error processing request
+- `"network_error"` - Network connectivity issues
+- `"timeout"` - Request timed out after 400ms
+
+
+### Important Notes
+
+- The `predict()` method is **non-blocking** and won't affect your app's performance
+- All requests have a **400-millisecond timeout** to prevent hanging
+- The method automatically uses the **current session ID** and sends all **buffered events** to the prediction service
+- The method returns a `CompletableFuture<PredictionResponse>`, perfect for asynchronous programming
+- Always check `isSuccess() == true` for complete predictions 
+- **`predictionProbability` and `predictionBinary` are optional** - they will be `null` for error responses and only contain values for successful predictions
+- **Active session required** - Make sure to call `start()` before using predict method, otherwise you'll get `"no_session"` error
+
+### Latency Tracking
+
+The library automatically tracks prediction request latency and sends this data to the Dolphin service for monitoring and analytics. This feature is enabled by default but can be controlled programmatically.
+
+#### Enable/Disable Latency Tracking
+
+```java
+// Disable latency tracking (enabled by default)
+MoveoOne.getInstance().calculateLatency(false);
+
+// Re-enable latency tracking
+MoveoOne.getInstance().calculateLatency(true);
+```
+
+#### How It Works
+
+- When latency tracking is enabled, the library automatically measures the time from when a prediction request is sent until the response is received
+- This latency data is sent asynchronously to the `/api/prediction-latency` endpoint after the prediction response is returned to the user
+- The latency tracking does not affect the prediction API response time or client performance
+
 
 ## Event Types and Actions
 
@@ -414,8 +525,7 @@ public class MainActivity extends AppCompatActivity {
                     "add_to_cart_button",
                     Constants.MoveoOneType.BUTTON,
                     Constants.MoveoOneAction.CLICK,
-                    "Add to Cart",
-                    null
+                    "Add to Cart"
                 )
             );
         });
@@ -432,8 +542,7 @@ public class MainActivity extends AppCompatActivity {
                         "search_input",
                         Constants.MoveoOneType.SEARCH_BAR,
                         Constants.MoveoOneAction.INPUT,
-                        s.toString(),
-                        null
+                        s.toString()
                     )
                 );
             }
@@ -457,8 +566,7 @@ public class MainActivity extends AppCompatActivity {
                             "product_list",
                             Constants.MoveoOneType.COLLECTION,
                             Constants.MoveoOneAction.SCROLL,
-                            "vertical_scroll",
-                        null
+                            "vertical_scroll"
                     )
                 );
                 }
@@ -483,8 +591,7 @@ public class MainActivity extends AppCompatActivity {
                 id,
                 type,
                 Constants.MoveoOneAction.APPEAR,
-                value,
-                null
+                value
             )
         );
     }
@@ -499,8 +606,7 @@ public class MainActivity extends AppCompatActivity {
                 "checkout_button",
                 Constants.MoveoOneType.BUTTON,
                 Constants.MoveoOneAction.CLICK,
-                "Proceed to Checkout",
-                null
+                "Proceed to Checkout"
             )
         );
         
