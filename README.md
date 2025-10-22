@@ -22,7 +22,7 @@
 
 Moveo One Analytics is a user cognitive-behavioral analytics tool designed to provide deep insights into user behavior and interaction patterns. The moveo-analytics-android SDK enables Android applications to leverage Moveo One's advanced analytics capabilities with a lightweight, non-intrusive integration.
 
-**Current version:** 1.0.14
+**Current version:** 1.0.16
 
 ### Key Features
 - User interaction tracking
@@ -55,7 +55,7 @@ Add the dependency to your app-level `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'com.github.divstechnologydev:moveo-analytics-android:v1.0.14'
+    implementation 'com.github.divstechnologydev:moveo-analytics-android:v1.0.16'
 }
 ```
 
